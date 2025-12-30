@@ -98,6 +98,45 @@
       </section>
       <section class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
         <div class="mb-3 text-sm font-semibold uppercase tracking-widest text-gray-500">
+          Properties
+        </div>
+        <div class="grid gap-4 sm:grid-cols-3">
+          <label class="flex flex-col gap-2 text-xs font-semibold uppercase tracking-widest text-gray-500">
+            Fill
+            <input
+              id="attr-fill"
+              type="text"
+              placeholder="e.g. #ff0000 or none"
+              class="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-normal text-gray-800"
+              disabled
+            />
+          </label>
+          <label class="flex flex-col gap-2 text-xs font-semibold uppercase tracking-widest text-gray-500">
+            Stroke
+            <input
+              id="attr-stroke"
+              type="text"
+              placeholder="e.g. #000000 or none"
+              class="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-normal text-gray-800"
+              disabled
+            />
+          </label>
+          <label class="flex flex-col gap-2 text-xs font-semibold uppercase tracking-widest text-gray-500">
+            Stroke Width
+            <input
+              id="attr-stroke-width"
+              type="number"
+              min="0"
+              step="0.5"
+              placeholder="e.g. 2"
+              class="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-xs font-normal text-gray-800"
+              disabled
+            />
+          </label>
+        </div>
+      </section>
+      <section class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div class="mb-3 text-sm font-semibold uppercase tracking-widest text-gray-500">
           Raw SVG Text
         </div>
         <textarea
@@ -117,6 +156,9 @@
       const zoomInButton = document.getElementById("zoom-in-btn");
       const zoomOutButton = document.getElementById("zoom-out-btn");
       const resetButton = document.getElementById("reset-btn");
+      const fillInput = document.getElementById("attr-fill");
+      const strokeInput = document.getElementById("attr-stroke");
+      const strokeWidthInput = document.getElementById("attr-stroke-width");
       let currentSvg = null;
       let selectedElement = null;
       let panZoomInstance = null;
@@ -227,6 +269,44 @@
         if (panZoomInstance) {
           panZoomInstance.enablePan();
         }
+        updateAttributeInputs();
+      };
+
+      const setInputsEnabled = (enabled) => {
+        fillInput.disabled = !enabled;
+        strokeInput.disabled = !enabled;
+        strokeWidthInput.disabled = !enabled;
+      };
+
+      const updateAttributeInputs = () => {
+        if (!selectedElement) {
+          fillInput.value = "";
+          strokeInput.value = "";
+          strokeWidthInput.value = "";
+          setInputsEnabled(false);
+          return;
+        }
+        const computed = getComputedStyle(selectedElement);
+        const fillValue = selectedElement.getAttribute("fill") ?? computed.fill;
+        const strokeValue = selectedElement.getAttribute("stroke") ?? computed.stroke;
+        const strokeWidthValue =
+          selectedElement.getAttribute("stroke-width") ?? computed.strokeWidth;
+        fillInput.value = fillValue || "";
+        strokeInput.value = strokeValue || "";
+        strokeWidthInput.value = strokeWidthValue || "";
+        setInputsEnabled(true);
+      };
+
+      const applyAttribute = (name, value) => {
+        if (!selectedElement) {
+          return;
+        }
+        const trimmed = value.trim();
+        if (trimmed === "") {
+          selectedElement.removeAttribute(name);
+        } else {
+          selectedElement.setAttribute(name, trimmed);
+        }
       };
 
       const resolveSelectablePart = (target) => {
@@ -320,6 +400,19 @@
         selectedElement = nextSelection;
         selectedElement.classList.add("selected-part");
         attachDragHandlers(selectedElement);
+        updateAttributeInputs();
+      });
+
+      fillInput.addEventListener("input", (event) => {
+        applyAttribute("fill", event.target.value);
+      });
+
+      strokeInput.addEventListener("input", (event) => {
+        applyAttribute("stroke", event.target.value);
+      });
+
+      strokeWidthInput.addEventListener("input", (event) => {
+        applyAttribute("stroke-width", event.target.value);
       });
 
       const serializeCurrentSvg = () => {

@@ -150,22 +150,32 @@
 ### Issue 21: 属性パネルUI（fill / stroke / stroke-width）を配置する
 **Done条件**
 - 入力UIが存在（color / number など）  
+**ステータス**
+- 完了
 
 ### Issue 22: fillを編集して反映できる
 **Done条件**
 - 選択パーツのfillが変わる  
+**ステータス**
+- 完了
 
 ### Issue 23: strokeを編集して反映できる
 **Done条件**
 - 選択パーツのstrokeが変わる  
+**ステータス**
+- 完了
 
 ### Issue 24: stroke-widthを編集して反映できる
 **Done条件**
 - 選択パーツのstroke-widthが変わる  
+**ステータス**
+- 完了
 
 ### Issue 25: 選択変更時に属性パネルが追従する
 **Done条件**
 - 選択中パーツの現在値がUIに反映される  
+**ステータス**
+- 完了
 
 ---
 
