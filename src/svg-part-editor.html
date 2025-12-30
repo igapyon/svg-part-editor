@@ -443,7 +443,9 @@
         const viewBox = svg.getAttribute("viewBox");
         if (viewBox) {
           svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
-          baseViewBox = viewBox;
+          if (!baseViewBox) {
+            baseViewBox = viewBox;
+          }
           console.info("SVG viewBox found:", viewBox);
           return;
         }
@@ -460,7 +462,9 @@
             const nextViewBox = `${x} ${y} ${width} ${height}`;
             svg.setAttribute("viewBox", nextViewBox);
             svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
-            baseViewBox = nextViewBox;
+            if (!baseViewBox) {
+              baseViewBox = nextViewBox;
+            }
             console.info("SVG viewBox generated:", nextViewBox);
           } else {
             console.info("SVG viewBox could not be computed from bbox.");
@@ -581,7 +585,9 @@
             if (panZoomInstance) {
               panZoomInstance.destroy();
             }
-            baseViewBox = svg.getAttribute("viewBox");
+            if (!baseViewBox) {
+              baseViewBox = svg.getAttribute("viewBox");
+            }
             const shouldFit = !options.viewState;
             panZoomInstance = window.svgPanZoom(svg, {
               zoomEnabled: true,
