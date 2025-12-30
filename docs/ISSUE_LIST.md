@@ -183,7 +183,7 @@
 **ステータス**
 - 完了
 
-### Issue 25.1: Propertiesの表示/編集可能項目の設計を整理する
+### Issue 25.1: Propertiesの表示/編集可能項目の設計を整理する（GitHub #53）
 **Done条件**
 - Propertiesで表示する項目一覧が決まっている  
 - 各項目が「編集可能 / 表示のみ / 対象外」のいずれかに分類されている  
@@ -242,13 +242,13 @@
 
 ## 🧭 Phase 7.5: UIモード
 
-### Issue 31.1: Select / Move / Pan アイコンにモード機能を割り当てる
+### Issue 31.1: Select / Move / Pan アイコンにモード機能を割り当てる（GitHub #54）
 **Done条件**
 - 右側アイコンで Select / Move / Pan のモードが切り替えられる  
 - モードに応じてクリック/ドラッグ挙動が変わる  
 - 現在のモードが視覚的に分かる  
 
-### Issue 31.2: 追加モード候補（Rotate/Scale/Duplicate/Measure等）を検討する
+### Issue 31.2: 追加モード候補（Rotate/Scale/Duplicate/Measure等）を検討する（GitHub #55）
 **Done条件**
 - 追加するモード候補の一覧が整理されている  
 - 各候補の目的と優先度が簡潔に記録されている  
@@ -258,7 +258,7 @@
 
 ## 🧩 Phase 7.6: Part作成
 
-### Issue 31.3: 新規 Part 作成機能の検討
+### Issue 31.3: 新規 Part 作成機能の検討（GitHub #56）
 **Done条件**
 - 作成対象のPart種別（例: rect/circle/path など）が整理されている  
 - UI導線（ツール/メニュー/ショートカット等）の案が決まっている  
