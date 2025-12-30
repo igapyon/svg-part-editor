@@ -25,6 +25,10 @@
 - Interact.js: 1.10.27
 - svg-pan-zoom: 3.6.2
 
+## 実装方針
+
+- HTML内にCSS/JSを内包する（1ファイル完結）。
+
 ## 開発フロー
 
 - `src/svg-part-editor.html` をブラウザで直接開いて動作確認します。
