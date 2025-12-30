@@ -70,6 +70,30 @@
       const output = document.getElementById("svg-text");
       const stage = document.getElementById("stage");
 
+      const ensureViewBox = (svg) => {
+        const viewBox = svg.getAttribute("viewBox");
+        if (viewBox) {
+          svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+          return;
+        }
+
+        try {
+          const bbox = svg.getBBox();
+          if (bbox.width && bbox.height) {
+            const padX = Math.max(bbox.width * 0.05, 10);
+            const padY = Math.max(bbox.height * 0.05, 10);
+            const x = bbox.x - padX;
+            const y = bbox.y - padY;
+            const width = bbox.width + padX * 2;
+            const height = bbox.height + padY * 2;
+            svg.setAttribute("viewBox", `${x} ${y} ${width} ${height}`);
+            svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+          }
+        } catch (error) {
+          console.warn("Failed to compute SVG viewBox.", error);
+        }
+      };
+
       fileInput.addEventListener("change", async (event) => {
         const file = event.target.files && event.target.files[0];
         if (!file) {
@@ -93,6 +117,7 @@
             stage.append(svg);
             svg.setAttribute("width", "100%");
             svg.setAttribute("height", "100%");
+            requestAnimationFrame(() => ensureViewBox(svg));
           } else {
             stage.textContent = "No <svg> element found.";
           }
