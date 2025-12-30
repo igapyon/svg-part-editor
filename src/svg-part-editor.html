@@ -190,6 +190,7 @@
         const viewBox = svg.getAttribute("viewBox");
         if (viewBox) {
           svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+          baseViewBox = viewBox;
           console.info("SVG viewBox found:", viewBox);
           return;
         }
@@ -206,6 +207,7 @@
             const nextViewBox = `${x} ${y} ${width} ${height}`;
             svg.setAttribute("viewBox", nextViewBox);
             svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+            baseViewBox = nextViewBox;
             console.info("SVG viewBox generated:", nextViewBox);
           } else {
             console.info("SVG viewBox could not be computed from bbox.");
@@ -268,6 +270,12 @@
         if (baseViewBox) {
           clone.setAttribute("viewBox", baseViewBox);
           clone.setAttribute("preserveAspectRatio", "xMidYMid meet");
+        }
+        const viewport = clone.querySelector(".svg-pan-zoom_viewport");
+        if (viewport) {
+          const children = Array.from(viewport.childNodes);
+          children.forEach((child) => clone.append(child));
+          viewport.remove();
         }
         return clone;
       };
