@@ -170,6 +170,7 @@
           output.value = "";
           return null;
         }
+        ensureViewBox(currentSvg);
         const serializer = new XMLSerializer();
         const serialized = serializer.serializeToString(currentSvg);
         output.value = serialized;
