@@ -1,0 +1,1010 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>svg-part-editor</title>
+    <script src="https://cdn.tailwindcss.com/3.4.13"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/svg.js/3.2.5/svg.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/interactjs@1.10.27/dist/interact.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.2/dist/svg-pan-zoom.min.js"></script>
+    <style>
+      :root {
+        color-scheme: light;
+      }
+      body {
+        font-family: "Avenir Next", "Avenir", "Nunito", "Segoe UI", sans-serif;
+      }
+      .tooltip {
+        position: relative;
+      }
+      .tooltip::after {
+        content: attr(data-tip);
+        position: absolute;
+        left: 50%;
+        top: calc(100% + 8px);
+        transform: translateX(-50%);
+        white-space: nowrap;
+        background: #0f172a;
+        color: #f8fafc;
+        font-size: 11px;
+        padding: 4px 8px;
+        border-radius: 6px;
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.18);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 150ms ease;
+        z-index: 20;
+      }
+      .tooltip:hover::after,
+      .tooltip:focus-visible::after {
+        opacity: 1;
+      }
+      .selected-part {
+        filter: drop-shadow(0 0 2px rgba(37, 99, 235, 0.9));
+      }
+    </style>
+  </head>
+  <body class="min-h-screen bg-gray-100 text-gray-900">
+    <header class="border-b border-slate-200 bg-white">
+      <div class="mx-auto flex max-w-[1200px] items-center justify-between gap-6 px-6 py-4">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-widest text-gray-500">
+            Svg Part Editor
+          </p>
+          <h1 class="text-xl font-semibold tracking-tight text-gray-900">Workspace</h1>
+        </div>
+        <div class="flex flex-wrap items-center justify-end gap-4">
+          <div class="flex items-center gap-2">
+            <label
+              class="tooltip inline-flex h-10 w-10 items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-50 text-slate-600 hover:bg-slate-100"
+              data-tip="Load SVG"
+            >
+              <input id="svg-file" type="file" accept=".svg" class="hidden" />
+              <svg
+                class="h-4 w-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M3 7h5l2 2h11a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" />
+                <path d="M3 7V5a2 2 0 0 1 2-2h4l2 2h9" />
+              </svg>
+              <span class="sr-only">Load SVG</span>
+            </label>
+            <button
+              id="serialize-btn"
+              type="button"
+              class="tooltip inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-900 bg-slate-900 text-white hover:bg-slate-800"
+              data-tip="Serialize SVG"
+            >
+              <svg
+                class="h-4 w-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M8 9l-4 3 4 3" />
+                <path d="M16 9l4 3-4 3" />
+                <path d="M12 8l-1.5 8" />
+              </svg>
+              <span class="sr-only">Serialize SVG</span>
+            </button>
+            <button
+              id="download-btn"
+              type="button"
+              class="tooltip inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-100"
+              data-tip="Download SVG"
+            >
+              <svg
+                class="h-4 w-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M12 5v10" />
+                <path d="M17 10l-5 5-5-5" />
+                <path d="M5 19h14" />
+              </svg>
+              <span class="sr-only">Download SVG</span>
+            </button>
+          </div>
+          <div class="flex items-center gap-2">
+            <button
+              id="undo-btn"
+              type="button"
+              class="tooltip inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-100"
+              data-tip="Undo (Cmd/Ctrl+Z)"
+            >
+              <svg
+                class="h-4 w-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M9 14l-4-4 4-4" />
+                <path d="M20 20a8 8 0 0 0-8-8H5" />
+              </svg>
+              <span class="sr-only">Undo</span>
+            </button>
+            <button
+              id="redo-btn"
+              type="button"
+              class="tooltip inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-100"
+              data-tip="Redo (Cmd+Shift+Z / Ctrl+Y)"
+            >
+              <svg
+                class="h-4 w-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M15 14l4-4-4-4" />
+                <path d="M4 20a8 8 0 0 1 8-8h7" />
+              </svg>
+              <span class="sr-only">Redo</span>
+            </button>
+          </div>
+          <div class="flex items-center gap-2">
+            <button
+              id="zoom-in-btn"
+              type="button"
+              class="tooltip inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-100"
+              data-tip="Zoom In"
+            >
+              <svg
+                class="h-4 w-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="11" cy="11" r="7" />
+                <path d="M21 21l-4.35-4.35" />
+                <path d="M11 8v6" />
+                <path d="M8 11h6" />
+              </svg>
+              <span class="sr-only">Zoom In</span>
+            </button>
+            <button
+              id="zoom-out-btn"
+              type="button"
+              class="tooltip inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-100"
+              data-tip="Zoom Out"
+            >
+              <svg
+                class="h-4 w-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="11" cy="11" r="7" />
+                <path d="M21 21l-4.35-4.35" />
+                <path d="M8 11h6" />
+              </svg>
+              <span class="sr-only">Zoom Out</span>
+            </button>
+            <button
+              id="reset-btn"
+              type="button"
+              class="tooltip inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-100"
+              data-tip="Reset View"
+            >
+              <svg
+                class="h-4 w-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="7" />
+                <path d="M12 5v14" />
+                <path d="M5 12h14" />
+              </svg>
+              <span class="sr-only">Reset View</span>
+            </button>
+          </div>
+        </div>
+        </div>
+      </div>
+      <div class="border-t border-slate-100 bg-slate-50">
+        <div class="mx-auto flex max-w-[1200px] items-center gap-4 px-6 py-2 text-xs text-slate-600">
+          <span class="uppercase tracking-widest">Status</span>
+          <span id="status">Select an SVG file to read its text.</span>
+        </div>
+      </div>
+    </header>
+    <main class="mx-auto flex min-h-[calc(100vh-120px)] max-w-[1200px] gap-4 px-6 py-4">
+      <aside class="w-[240px] shrink-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div class="mb-3 flex items-center justify-between">
+          <div class="text-xs font-semibold uppercase tracking-widest text-slate-500">
+            Parts
+          </div>
+          <button
+            class="tooltip inline-flex h-7 w-7 items-center justify-center rounded-md border border-slate-200 bg-white text-slate-600 hover:bg-slate-100"
+            data-tip="Refresh List"
+            type="button"
+            id="refresh-parts-btn"
+          >
+            <svg
+              class="h-3.5 w-3.5"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M3 12a9 9 0 0 1 9-9 9 9 0 0 1 7 3" />
+              <path d="M21 3v6h-6" />
+              <path d="M21 12a9 9 0 0 1-9 9 9 9 0 0 1-7-3" />
+              <path d="M3 21v-6h6" />
+            </svg>
+            <span class="sr-only">Refresh</span>
+          </button>
+        </div>
+        <div
+          id="parts-list"
+          class="flex h-[560px] flex-col gap-2 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50 p-2 text-xs text-slate-600"
+        >
+          <div class="rounded-lg border border-dashed border-slate-200 bg-white px-3 py-2 text-[11px] text-slate-500">
+            Load an SVG to list parts.
+          </div>
+        </div>
+      </aside>
+      <section class="flex-1 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div class="mb-2 text-xs font-semibold uppercase tracking-widest text-slate-500">Stage</div>
+        <div
+          id="stage"
+          class="h-[620px] w-full rounded-xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-500 overflow-hidden"
+        >
+          SVG will render here.
+        </div>
+      </section>
+      <aside class="w-[300px] shrink-0 space-y-4">
+        <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div class="mb-3 text-xs font-semibold uppercase tracking-widest text-slate-500">
+            Properties
+          </div>
+          <div class="grid gap-3">
+            <label class="flex flex-col gap-2 text-xs font-semibold uppercase tracking-widest text-slate-500">
+              Fill
+              <input
+                id="attr-fill"
+                type="text"
+                placeholder="e.g. #ff0000 or none"
+                class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-normal text-slate-800"
+                disabled
+              />
+            </label>
+            <label class="flex flex-col gap-2 text-xs font-semibold uppercase tracking-widest text-slate-500">
+              Stroke
+              <input
+                id="attr-stroke"
+                type="text"
+                placeholder="e.g. #000000 or none"
+                class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-normal text-slate-800"
+                disabled
+              />
+            </label>
+            <label class="flex flex-col gap-2 text-xs font-semibold uppercase tracking-widest text-slate-500">
+              Stroke Width
+              <input
+                id="attr-stroke-width"
+                type="number"
+                min="0"
+                step="0.5"
+                placeholder="e.g. 2"
+                class="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-normal text-slate-800"
+                disabled
+              />
+            </label>
+          </div>
+        </section>
+        <section class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div class="mb-3 text-xs font-semibold uppercase tracking-widest text-slate-500">
+            Raw SVG Text
+          </div>
+          <textarea
+            id="svg-text"
+            readonly
+            class="min-h-[180px] w-full resize-y rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-xs text-slate-800 shadow-inner"
+          ></textarea>
+        </section>
+      </aside>
+      <aside class="w-[56px] shrink-0 rounded-2xl border border-slate-200 bg-white p-2 shadow-sm">
+        <div class="flex flex-col items-center gap-2">
+          <button
+            class="tooltip inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-slate-700"
+            data-tip="Select"
+            type="button"
+          >
+            <svg
+              class="h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M5 3l6 14 2-5 5-2-13-7z" />
+            </svg>
+          </button>
+          <button
+            class="tooltip inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-100"
+            data-tip="Move"
+            type="button"
+          >
+            <svg
+              class="h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M12 2v20" />
+              <path d="M2 12h20" />
+              <path d="M12 2l3 3-3-3-3 3" />
+              <path d="M12 22l3-3-3 3-3-3" />
+              <path d="M2 12l3-3-3 3 3 3" />
+              <path d="M22 12l-3-3 3 3-3 3" />
+            </svg>
+          </button>
+          <button
+            class="tooltip inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-100"
+            data-tip="Pan"
+            type="button"
+          >
+            <svg
+              class="h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M7 11v-2a2 2 0 0 1 4 0v2" />
+              <path d="M11 11V7a2 2 0 1 1 4 0v4" />
+              <path d="M15 11V8a2 2 0 1 1 4 0v6" />
+              <path d="M5 11v-1a2 2 0 0 0-4 0v4a8 8 0 0 0 8 8h4a6 6 0 0 0 6-6v-1" />
+            </svg>
+          </button>
+        </div>
+      </aside>
+    </main>
+    <script>
+      const fileInput = document.getElementById("svg-file");
+      const status = document.getElementById("status");
+      const output = document.getElementById("svg-text");
+      const stage = document.getElementById("stage");
+      const serializeButton = document.getElementById("serialize-btn");
+      const downloadButton = document.getElementById("download-btn");
+      const zoomInButton = document.getElementById("zoom-in-btn");
+      const zoomOutButton = document.getElementById("zoom-out-btn");
+      const resetButton = document.getElementById("reset-btn");
+      const undoButton = document.getElementById("undo-btn");
+      const redoButton = document.getElementById("redo-btn");
+      const fillInput = document.getElementById("attr-fill");
+      const strokeInput = document.getElementById("attr-stroke");
+      const strokeWidthInput = document.getElementById("attr-stroke-width");
+      const partsList = document.getElementById("parts-list");
+      const refreshPartsButton = document.getElementById("refresh-parts-btn");
+      let currentSvg = null;
+      let selectedElement = null;
+      let panZoomInstance = null;
+      let interactTarget = null;
+      let isRestoring = false;
+      let baseViewBox = null;
+      let currentParts = [];
+      const undoStack = [];
+      const redoStack = [];
+      const maxHistory = 30;
+      let pendingSnapshot = null;
+
+      const ensureViewBox = (svg) => {
+        const viewBox = svg.getAttribute("viewBox");
+        if (viewBox) {
+          svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+          if (!baseViewBox) {
+            baseViewBox = viewBox;
+          }
+          console.info("SVG viewBox found:", viewBox);
+          return;
+        }
+
+        try {
+          const bbox = svg.getBBox();
+          if (bbox.width && bbox.height) {
+            const padX = Math.max(bbox.width * 0.05, 10);
+            const padY = Math.max(bbox.height * 0.05, 10);
+            const x = bbox.x - padX;
+            const y = bbox.y - padY;
+            const width = bbox.width + padX * 2;
+            const height = bbox.height + padY * 2;
+            const nextViewBox = `${x} ${y} ${width} ${height}`;
+            svg.setAttribute("viewBox", nextViewBox);
+            svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+            if (!baseViewBox) {
+              baseViewBox = nextViewBox;
+            }
+            console.info("SVG viewBox generated:", nextViewBox);
+          } else {
+            console.info("SVG viewBox could not be computed from bbox.");
+          }
+        } catch (error) {
+          console.warn("Failed to compute SVG viewBox.", error);
+        }
+      };
+
+      fileInput.addEventListener("change", async (event) => {
+        const file = event.target.files && event.target.files[0];
+        if (!file) {
+          status.textContent = "No file selected.";
+          output.value = "";
+          return;
+        }
+
+        try {
+          const text = await file.text();
+          window.__svgText = text;
+          status.textContent = `Loaded ${file.name} (${text.length} chars).`;
+          output.value = text;
+
+          const svg = loadSvgFromString(text);
+          if (svg) {
+            const pathCount = svg.querySelectorAll("path").length;
+            const nodeCount = svg.querySelectorAll("*").length;
+            console.info("SVG file name:", file.name);
+            console.info("SVG file size (bytes):", file.size);
+            console.info("SVG text length (chars):", text.length);
+            console.info("SVG path count:", pathCount);
+            console.info("SVG element count:", nodeCount);
+          }
+        } catch (error) {
+          status.textContent = "Failed to read file.";
+          output.value = "";
+          stage.textContent = "Failed to parse SVG.";
+          currentSvg = null;
+          console.error(error);
+        }
+      });
+
+      const clearSelection = () => {
+        if (selectedElement) {
+          selectedElement.classList.remove("selected-part");
+        }
+        selectedElement = null;
+        if (interactTarget) {
+          interact(interactTarget).unset();
+          interactTarget = null;
+        }
+        if (panZoomInstance) {
+          panZoomInstance.enablePan();
+        }
+        updateAttributeInputs();
+        updatePartsSelection();
+      };
+
+      const cloneSvgForSerialization = (svg) => {
+        const clone = svg.cloneNode(true);
+        if (baseViewBox) {
+          clone.setAttribute("viewBox", baseViewBox);
+          clone.setAttribute("preserveAspectRatio", "xMidYMid meet");
+        }
+        const viewport = clone.querySelector(".svg-pan-zoom_viewport");
+        if (viewport) {
+          const children = Array.from(viewport.childNodes);
+          children.forEach((child) => clone.append(child));
+          viewport.remove();
+        }
+        return clone;
+      };
+
+      const serializeSvgElement = (svg) => {
+        const serializer = new XMLSerializer();
+        return serializer.serializeToString(svg);
+      };
+
+      const pushSnapshot = (reason = "update") => {
+        if (!currentSvg || isRestoring) {
+          return;
+        }
+        const serialized = serializeSvgElement(cloneSvgForSerialization(currentSvg));
+        const last = undoStack[undoStack.length - 1];
+        if (last === serialized) {
+          return;
+        }
+        undoStack.push(serialized);
+        if (undoStack.length > maxHistory) {
+          undoStack.shift();
+        }
+        redoStack.length = 0;
+        console.info("Snapshot saved:", reason, "stack", undoStack.length);
+      };
+
+      const scheduleSnapshot = (reason) => {
+        if (pendingSnapshot) {
+          clearTimeout(pendingSnapshot);
+        }
+        pendingSnapshot = setTimeout(() => {
+          pushSnapshot(reason);
+          pendingSnapshot = null;
+        }, 250);
+      };
+
+      const loadSvgFromString = (text, options = {}) => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(text, "image/svg+xml");
+        const svg = doc.querySelector("svg");
+
+        stage.innerHTML = "";
+        if (svg) {
+          stage.append(svg);
+          svg.setAttribute("width", "100%");
+          svg.setAttribute("height", "100%");
+          requestAnimationFrame(() => {
+            ensureViewBox(svg);
+            if (panZoomInstance) {
+              panZoomInstance.destroy();
+            }
+            if (!baseViewBox) {
+              baseViewBox = svg.getAttribute("viewBox");
+            }
+            const shouldFit = !options.viewState;
+            panZoomInstance = window.svgPanZoom(svg, {
+              zoomEnabled: true,
+              panEnabled: true,
+              controlIconsEnabled: false,
+              fit: shouldFit,
+              center: shouldFit,
+              minZoom: 0.2,
+              maxZoom: 20,
+              zoomScaleSensitivity: 0.2,
+            });
+            if (options.viewState) {
+              panZoomInstance.zoom(options.viewState.zoom);
+              panZoomInstance.pan(options.viewState.pan);
+            }
+            console.info("svg-pan-zoom initialized.");
+          });
+          currentSvg = svg;
+          clearSelection();
+          renderPartsList();
+          if (!options.skipHistory) {
+            pushSnapshot("load");
+          }
+        } else {
+          stage.textContent = "No <svg> element found.";
+          currentSvg = null;
+          baseViewBox = null;
+          clearSelection();
+          renderPartsList();
+        }
+        return svg;
+      };
+
+      const setInputsEnabled = (enabled) => {
+        fillInput.disabled = !enabled;
+        strokeInput.disabled = !enabled;
+        strokeWidthInput.disabled = !enabled;
+      };
+
+      const updateAttributeInputs = () => {
+        if (!selectedElement) {
+          fillInput.value = "";
+          strokeInput.value = "";
+          strokeWidthInput.value = "";
+          setInputsEnabled(false);
+          return;
+        }
+        const computed = getComputedStyle(selectedElement);
+        const fillValue = selectedElement.getAttribute("fill") ?? computed.fill;
+        const strokeValue = selectedElement.getAttribute("stroke") ?? computed.stroke;
+        const strokeWidthValue =
+          selectedElement.getAttribute("stroke-width") ?? computed.strokeWidth;
+        fillInput.value = fillValue || "";
+        strokeInput.value = strokeValue || "";
+        strokeWidthInput.value = strokeWidthValue || "";
+        setInputsEnabled(true);
+      };
+
+      const getEditableParts = () => {
+        if (!currentSvg) {
+          return [];
+        }
+        const groups = Array.from(currentSvg.querySelectorAll("g")).filter(
+          (node) => !node.classList.contains("svg-pan-zoom_viewport")
+        );
+        if (groups.length > 0) {
+          return groups;
+        }
+        return Array.from(currentSvg.children).filter((node) => {
+          const tag = node.tagName.toLowerCase();
+          return tag !== "defs" && tag !== "use";
+        });
+      };
+
+      const getPartLabel = (part, index) => {
+        const id = part.getAttribute("id");
+        const tag = part.tagName.toLowerCase();
+        if (id) {
+          return id;
+        }
+        return `${tag} ${index + 1}`;
+      };
+
+      const updatePartsSelection = () => {
+        const buttons = partsList.querySelectorAll("[data-part-index]");
+        buttons.forEach((button) => {
+          const index = Number(button.dataset.partIndex);
+          const element = currentParts[index];
+          if (element && element === selectedElement) {
+            button.classList.add("bg-slate-200", "text-slate-900");
+          } else {
+            button.classList.remove("bg-slate-200", "text-slate-900");
+          }
+        });
+      };
+
+      const renderPartsList = () => {
+        currentParts = getEditableParts();
+        partsList.innerHTML = "";
+        if (currentParts.length === 0) {
+          const placeholder = document.createElement("div");
+          placeholder.className =
+            "rounded-lg border border-dashed border-slate-200 bg-white px-3 py-2 text-[11px] text-slate-500";
+          placeholder.textContent = "No parts found.";
+          partsList.append(placeholder);
+          return;
+        }
+        currentParts.forEach((part, index) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.dataset.partIndex = String(index);
+          button.className =
+            "flex w-full items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-2 text-left text-[12px] text-slate-700 hover:bg-slate-100";
+          const label = document.createElement("span");
+          label.textContent = getPartLabel(part, index);
+          const tag = document.createElement("span");
+          tag.className = "text-[10px] uppercase tracking-widest text-slate-400";
+          tag.textContent = part.tagName.toLowerCase();
+          button.append(label, tag);
+          button.addEventListener("click", () => {
+            setSelection(part);
+          });
+          partsList.append(button);
+        });
+        updatePartsSelection();
+      };
+
+      const setSelection = (nextSelection) => {
+        if (selectedElement === nextSelection) {
+          return;
+        }
+        if (selectedElement) {
+          selectedElement.classList.remove("selected-part");
+        }
+        selectedElement = nextSelection;
+        if (selectedElement) {
+          selectedElement.classList.add("selected-part");
+          attachDragHandlers(selectedElement);
+        }
+        updateAttributeInputs();
+        updatePartsSelection();
+      };
+
+      const applyAttribute = (name, value) => {
+        if (!selectedElement) {
+          return;
+        }
+        const trimmed = value.trim();
+        if (trimmed === "") {
+          selectedElement.removeAttribute(name);
+        } else {
+          selectedElement.setAttribute(name, trimmed);
+        }
+      };
+
+      const findUseElement = (target) => {
+        let cursor = target;
+        while (cursor && cursor !== currentSvg) {
+          if (cursor.tagName && cursor.tagName.toLowerCase() === "use") {
+            return cursor;
+          }
+          cursor = cursor.parentElement;
+        }
+        return null;
+      };
+
+      const resolveUseReference = (useElement) => {
+        const href =
+          useElement.getAttribute("href") || useElement.getAttribute("xlink:href");
+        if (!href || !href.startsWith("#")) {
+          return null;
+        }
+        const id = href.slice(1);
+        if (!id) {
+          return null;
+        }
+        return currentSvg ? currentSvg.querySelector(`#${CSS.escape(id)}`) : null;
+      };
+
+      const resolveSelectablePart = (target) => {
+        const useElement = findUseElement(target);
+        if (useElement) {
+          const referenced = resolveUseReference(useElement);
+          if (referenced) {
+            status.textContent = "Selected referenced element for <use>.";
+            return referenced;
+          }
+          status.textContent = "This <use> has no editable referenced element.";
+          return null;
+        }
+
+        let cursor = target;
+        while (cursor && cursor !== currentSvg) {
+          if (cursor.tagName === "g") {
+            if (!cursor.classList.contains("svg-pan-zoom_viewport")) {
+              return cursor;
+            }
+          }
+          cursor = cursor.parentElement;
+        }
+        return target;
+      };
+
+      const screenDeltaToSvgDelta = (dx, dy) => {
+        if (!currentSvg) {
+          return { x: dx, y: dy };
+        }
+        const viewport = currentSvg.querySelector(".svg-pan-zoom_viewport") || currentSvg;
+        const matrix = viewport.getScreenCTM();
+        if (!matrix) {
+          return { x: dx, y: dy };
+        }
+        const inverse = matrix.inverse();
+        if (typeof DOMPoint === "function") {
+          const a = new DOMPoint(0, 0).matrixTransform(inverse);
+          const b = new DOMPoint(dx, dy).matrixTransform(inverse);
+          return { x: b.x - a.x, y: b.y - a.y };
+        }
+        const pointA = currentSvg.createSVGPoint();
+        const pointB = currentSvg.createSVGPoint();
+        pointA.x = 0;
+        pointA.y = 0;
+        pointB.x = dx;
+        pointB.y = dy;
+        const a = pointA.matrixTransform(inverse);
+        const b = pointB.matrixTransform(inverse);
+        return { x: b.x - a.x, y: b.y - a.y };
+      };
+
+      const attachDragHandlers = (target) => {
+        if (interactTarget && interactTarget !== target) {
+          interact(interactTarget).unset();
+        }
+        interactTarget = target;
+        interact(target).draggable({
+          listeners: {
+            start() {
+              if (panZoomInstance) {
+                panZoomInstance.disablePan();
+              }
+              interactTarget.dataset.moved = "false";
+            },
+            move(event) {
+              const element = SVG(event.target);
+              const delta = screenDeltaToSvgDelta(event.dx, event.dy);
+              element.dmove(delta.x, delta.y);
+              interactTarget.dataset.moved = "true";
+            },
+            end() {
+              if (panZoomInstance) {
+                panZoomInstance.enablePan();
+              }
+              if (interactTarget.dataset.moved === "true") {
+                pushSnapshot("move");
+              }
+            },
+          },
+        });
+      };
+
+      stage.addEventListener("click", (event) => {
+        if (!currentSvg) {
+          return;
+        }
+
+        const target = event.target;
+        if (!(target instanceof Element)) {
+          return;
+        }
+
+        if (target === stage || target === currentSvg) {
+          clearSelection();
+          return;
+        }
+
+        const nextSelection = resolveSelectablePart(target);
+        if (!nextSelection) {
+          clearSelection();
+          return;
+        }
+        setSelection(nextSelection);
+      });
+
+      fillInput.addEventListener("input", (event) => {
+        applyAttribute("fill", event.target.value);
+        scheduleSnapshot("fill");
+      });
+
+      strokeInput.addEventListener("input", (event) => {
+        applyAttribute("stroke", event.target.value);
+        scheduleSnapshot("stroke");
+      });
+
+      strokeWidthInput.addEventListener("input", (event) => {
+        applyAttribute("stroke-width", event.target.value);
+        scheduleSnapshot("stroke-width");
+      });
+
+      const serializeCurrentSvg = () => {
+        if (!currentSvg) {
+          status.textContent = "No SVG loaded to serialize.";
+          output.value = "";
+          return null;
+        }
+        ensureViewBox(currentSvg);
+        const serialized = serializeSvgElement(cloneSvgForSerialization(currentSvg));
+        output.value = serialized;
+        status.textContent = `Serialized SVG (${serialized.length} chars).`;
+        console.info("SVG serialized length (chars):", serialized.length);
+        return serialized;
+      };
+
+      serializeButton.addEventListener("click", () => {
+        serializeCurrentSvg();
+      });
+
+      downloadButton.addEventListener("click", () => {
+        const serialized = serializeCurrentSvg();
+        if (!serialized) {
+          return;
+        }
+        const blob = new Blob([serialized], { type: "image/svg+xml" });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = "edited.svg";
+        document.body.append(anchor);
+        anchor.click();
+        anchor.remove();
+        URL.revokeObjectURL(url);
+        console.info("SVG download triggered.");
+      });
+
+      zoomInButton.addEventListener("click", () => {
+        if (!panZoomInstance) {
+          status.textContent = "No SVG loaded to zoom.";
+          return;
+        }
+        panZoomInstance.zoomIn();
+      });
+
+      zoomOutButton.addEventListener("click", () => {
+        if (!panZoomInstance) {
+          status.textContent = "No SVG loaded to zoom.";
+          return;
+        }
+        panZoomInstance.zoomOut();
+      });
+
+      resetButton.addEventListener("click", () => {
+        if (!panZoomInstance) {
+          status.textContent = "No SVG loaded to reset.";
+          return;
+        }
+        panZoomInstance.resetZoom();
+        panZoomInstance.center();
+        panZoomInstance.fit();
+      });
+
+      refreshPartsButton.addEventListener("click", () => {
+        renderPartsList();
+      });
+
+      const restoreSnapshot = (serialized) => {
+        isRestoring = true;
+        try {
+          const viewState = panZoomInstance
+            ? { zoom: panZoomInstance.getZoom(), pan: panZoomInstance.getPan() }
+            : null;
+          loadSvgFromString(serialized, { skipHistory: true, viewState });
+        } finally {
+          isRestoring = false;
+        }
+      };
+
+      const undo = () => {
+        if (undoStack.length < 2) {
+          status.textContent = "Nothing to undo.";
+          return;
+        }
+        const current = undoStack.pop();
+        redoStack.push(current);
+        const previous = undoStack[undoStack.length - 1];
+        restoreSnapshot(previous);
+      };
+
+      const redo = () => {
+        if (redoStack.length === 0) {
+          status.textContent = "Nothing to redo.";
+          return;
+        }
+        const next = redoStack.pop();
+        undoStack.push(next);
+        restoreSnapshot(next);
+      };
+
+      undoButton.addEventListener("click", undo);
+      redoButton.addEventListener("click", redo);
+
+      document.addEventListener("keydown", (event) => {
+        const isMac = navigator.platform.toLowerCase().includes("mac");
+        const modKey = isMac ? event.metaKey : event.ctrlKey;
+        const key = event.key.toLowerCase();
+        if (!modKey || (key !== "z" && key !== "y")) {
+          return;
+        }
+        event.preventDefault();
+        if (key === "y") {
+          redo();
+          return;
+        }
+        if (event.shiftKey) {
+          redo();
+        } else {
+          undo();
+        }
+      });
+    </script>
+  </body>
+</html>
