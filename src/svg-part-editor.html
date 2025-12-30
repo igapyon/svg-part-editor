@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>svg-part-editor</title>
+    <script src="https://cdn.tailwindcss.com/3.4.13"></script>
+    <style>
+      :root {
+        color-scheme: light;
+      }
+      body {
+        font-family: "Avenir Next", "Avenir", "Nunito", "Segoe UI", sans-serif;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen bg-gray-100 text-gray-900">
+    <header class="border-b border-gray-200 bg-white">
+      <div class="mx-auto flex max-w-5xl items-center justify-between px-6 py-5">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-widest text-gray-500">
+            Svg Part Editor
+          </p>
+          <h1 class="text-2xl font-semibold tracking-tight text-gray-900">File Intake</h1>
+        </div>
+      </div>
+    </header>
+    <main class="mx-auto grid max-w-5xl gap-6 px-6 py-8">
+      <section class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div class="flex flex-col gap-3">
+          <label class="text-sm font-semibold uppercase tracking-widest text-gray-500">
+            SVG File
+          </label>
+          <input
+            id="svg-file"
+            type="file"
+            accept=".svg"
+            class="w-full cursor-pointer rounded-xl border border-dashed border-gray-300 bg-gray-50 px-4 py-3 text-sm text-gray-700 file:mr-4 file:rounded-lg file:border-0 file:bg-blue-600 file:px-4 file:py-2 file:text-xs file:font-semibold file:uppercase file:tracking-widest file:text-white hover:border-blue-400"
+          />
+          <p id="status" class="text-sm text-gray-500">
+            Select an SVG file to read its text.
+          </p>
+        </div>
+      </section>
+      <section class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div class="mb-3 text-sm font-semibold uppercase tracking-widest text-gray-500">
+          Stage
+        </div>
+        <div
+          id="stage"
+          class="min-h-[320px] w-full rounded-xl border border-dashed border-gray-200 bg-gray-50 p-4 text-sm text-gray-500"
+        >
+          SVG will render here.
+        </div>
+      </section>
+      <section class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+        <div class="mb-3 text-sm font-semibold uppercase tracking-widest text-gray-500">
+          Raw SVG Text
+        </div>
+        <textarea
+          id="svg-text"
+          readonly
+          class="min-h-[200px] w-full resize-y rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 font-mono text-xs text-gray-800 shadow-inner"
+        ></textarea>
+      </section>
+    </main>
+    <script>
+      const fileInput = document.getElementById("svg-file");
+      const status = document.getElementById("status");
+      const output = document.getElementById("svg-text");
+      const stage = document.getElementById("stage");
+
+      const ensureViewBox = (svg) => {
+        const viewBox = svg.getAttribute("viewBox");
+        if (viewBox) {
+          svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+          console.info("SVG viewBox found:", viewBox);
+          return;
+        }
+
+        try {
+          const bbox = svg.getBBox();
+          if (bbox.width && bbox.height) {
+            const padX = Math.max(bbox.width * 0.05, 10);
+            const padY = Math.max(bbox.height * 0.05, 10);
+            const x = bbox.x - padX;
+            const y = bbox.y - padY;
+            const width = bbox.width + padX * 2;
+            const height = bbox.height + padY * 2;
+            const nextViewBox = `${x} ${y} ${width} ${height}`;
+            svg.setAttribute("viewBox", nextViewBox);
+            svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+            console.info("SVG viewBox generated:", nextViewBox);
+          } else {
+            console.info("SVG viewBox could not be computed from bbox.");
+          }
+        } catch (error) {
+          console.warn("Failed to compute SVG viewBox.", error);
+        }
+      };
+
+      fileInput.addEventListener("change", async (event) => {
+        const file = event.target.files && event.target.files[0];
+        if (!file) {
+          status.textContent = "No file selected.";
+          output.value = "";
+          return;
+        }
+
+        try {
+          const text = await file.text();
+          window.__svgText = text;
+          status.textContent = `Loaded ${file.name} (${text.length} chars).`;
+          output.value = text;
+
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(text, "image/svg+xml");
+          const svg = doc.querySelector("svg");
+
+          stage.innerHTML = "";
+          if (svg) {
+            const pathCount = svg.querySelectorAll("path").length;
+            const nodeCount = svg.querySelectorAll("*").length;
+            console.info("SVG file name:", file.name);
+            console.info("SVG file size (bytes):", file.size);
+            console.info("SVG text length (chars):", text.length);
+            console.info("SVG path count:", pathCount);
+            console.info("SVG element count:", nodeCount);
+
+            stage.append(svg);
+            svg.setAttribute("width", "100%");
+            svg.setAttribute("height", "100%");
+            requestAnimationFrame(() => ensureViewBox(svg));
+          } else {
+            stage.textContent = "No <svg> element found.";
+          }
+        } catch (error) {
+          status.textContent = "Failed to read file.";
+          output.value = "";
+          stage.textContent = "Failed to parse SVG.";
+          console.error(error);
+        }
+      });
+    </script>
+  </body>
+</html>
