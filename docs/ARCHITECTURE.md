@@ -1,4 +1,4 @@
-# Tech Stack 詳細
+# ARCHITECTURE.md
 
 **SVGの構造・操作・視点を、意図的に3レイヤーに分離している**
 
