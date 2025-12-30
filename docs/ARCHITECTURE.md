@@ -157,7 +157,7 @@ svg-pan-zoomは **viewBox専業**。
 
 ## まとめ（設計の核心）
 
-**svg-group-editor の本体は
+**svg-part-editor の本体は
 「この3つをどう組み合わせたか」そのもの**
 
 * SVG.js = 状態

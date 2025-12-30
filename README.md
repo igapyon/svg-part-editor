@@ -85,10 +85,10 @@ Getting Started
 
 Run Locally
 	1.	リポジトリをクローン or ダウンロード
-	2.	index.html をブラウザで開く
+	2.	src/svg-part-editor.html をブラウザで開く
 
 # no build, no server required
-open index.html
+open src/svg-part-editor.html
 
 
 ⸻
