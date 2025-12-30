@@ -13,6 +13,9 @@
       body {
         font-family: "Avenir Next", "Avenir", "Nunito", "Segoe UI", sans-serif;
       }
+      .selected-part {
+        filter: drop-shadow(0 0 2px rgba(37, 99, 235, 0.9));
+      }
     </style>
   </head>
   <body class="min-h-screen bg-gray-100 text-gray-900">
@@ -113,6 +116,7 @@
       const zoomOutButton = document.getElementById("zoom-out-btn");
       const resetButton = document.getElementById("reset-btn");
       let currentSvg = null;
+      let selectedElement = null;
       let panZoomInstance = null;
 
       const ensureViewBox = (svg) => {
@@ -193,9 +197,11 @@
               console.info("svg-pan-zoom initialized.");
             });
             currentSvg = svg;
+            selectedElement = null;
           } else {
             stage.textContent = "No <svg> element found.";
             currentSvg = null;
+            selectedElement = null;
           }
         } catch (error) {
           status.textContent = "Failed to read file.";
@@ -204,6 +210,37 @@
           currentSvg = null;
           console.error(error);
         }
+      });
+
+      stage.addEventListener("click", (event) => {
+        if (!currentSvg) {
+          return;
+        }
+
+        const target = event.target;
+        if (!(target instanceof Element)) {
+          return;
+        }
+
+        if (target === stage || target === currentSvg) {
+          if (selectedElement) {
+            selectedElement.classList.remove("selected-part");
+            selectedElement = null;
+          }
+          return;
+        }
+
+        const closestGroup = target.closest("g");
+        const nextSelection = closestGroup || target;
+        if (selectedElement === nextSelection) {
+          return;
+        }
+
+        if (selectedElement) {
+          selectedElement.classList.remove("selected-part");
+        }
+        selectedElement = nextSelection;
+        selectedElement.classList.add("selected-part");
       });
 
       const serializeCurrentSvg = () => {
