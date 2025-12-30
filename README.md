@@ -20,6 +20,50 @@ SVGを **DOMとして扱い**、**`<g>`（group）をパーツの最小単位**�
 
 ---
 
+## MVP Spec
+
+**Minimum editable unit**
+
+- 最小編集単位は `<g>` 要素
+- `<g>` が存在しない場合のみ、単一のSVG要素をパーツとして扱う
+- 移動・変形・属性編集は常にパーツ単位で行う
+
+**Included**
+
+- SVGの読み込み・表示
+- `<g>` 単位の選択
+- ドラッグ移動
+- fill / stroke / stroke-width 編集
+- Undo / Redo
+- SVGとして保存
+
+**Excluded (Future Work)**
+
+- パス編集
+- グループ内部編集
+- 高度な整列・レイアウト機能
+
+---
+
+## Getting Started
+
+### Run Locally
+
+1. リポジトリをクローン or ダウンロード
+2. `src/svg-part-editor.html` をブラウザで開く
+
+```sh
+# no build, no server required
+open src/svg-part-editor.html
+```
+
+### Release (Static Hosting)
+
+- `src/svg-part-editor.html` をそのまま静的ホストに配置する
+- CDN経由で依存を読み込むため、追加ビルドは不要
+
+---
+
 ## Non-Goals（やらないこと）
 
 svg-part-editor は **フル機能のSVGエディタを目指しません**。
@@ -78,37 +122,6 @@ Tech Stack
 	•	svg-pan-zoom — ズーム / パン制御
 
 すべてCDN経由で利用可能です。
-
-⸻
-
-Getting Started
-
-Run Locally
-	1.	リポジトリをクローン or ダウンロード
-	2.	src/svg-part-editor.html をブラウザで開く
-
-# no build, no server required
-open src/svg-part-editor.html
-
-
-⸻
-
-MVP Scope
-
-Included
-	•	SVGの読み込み・表示
-	•	<g> 単位の選択
-	•	ドラッグ移動
-	•	fill / stroke / stroke-width 編集
-	•	Undo / Redo
-	•	SVGとして保存
-
-Excluded (Future Work)
-	•	パス編集
-	•	グループ内部編集
-	•	高度な整列・レイアウト機能
-
-⸻
 
 Project Status
 
