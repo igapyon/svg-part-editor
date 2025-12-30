@@ -656,9 +656,10 @@
         if (groups.length > 0) {
           return groups;
         }
-        return Array.from(currentSvg.children).filter(
-          (node) => node.tagName.toLowerCase() !== "defs"
-        );
+        return Array.from(currentSvg.children).filter((node) => {
+          const tag = node.tagName.toLowerCase();
+          return tag !== "defs" && tag !== "use";
+        });
       };
 
       const getPartLabel = (part, index) => {
@@ -742,7 +743,42 @@
         }
       };
 
+      const findUseElement = (target) => {
+        let cursor = target;
+        while (cursor && cursor !== currentSvg) {
+          if (cursor.tagName && cursor.tagName.toLowerCase() === "use") {
+            return cursor;
+          }
+          cursor = cursor.parentElement;
+        }
+        return null;
+      };
+
+      const resolveUseReference = (useElement) => {
+        const href =
+          useElement.getAttribute("href") || useElement.getAttribute("xlink:href");
+        if (!href || !href.startsWith("#")) {
+          return null;
+        }
+        const id = href.slice(1);
+        if (!id) {
+          return null;
+        }
+        return currentSvg ? currentSvg.querySelector(`#${CSS.escape(id)}`) : null;
+      };
+
       const resolveSelectablePart = (target) => {
+        const useElement = findUseElement(target);
+        if (useElement) {
+          const referenced = resolveUseReference(useElement);
+          if (referenced) {
+            status.textContent = "Selected referenced element for <use>.";
+            return referenced;
+          }
+          status.textContent = "This <use> has no editable referenced element.";
+          return null;
+        }
+
         let cursor = target;
         while (cursor && cursor !== currentSvg) {
           if (cursor.tagName === "g") {
@@ -828,6 +864,10 @@
         }
 
         const nextSelection = resolveSelectablePart(target);
+        if (!nextSelection) {
+          clearSelection();
+          return;
+        }
         setSelection(nextSelection);
       });
 
