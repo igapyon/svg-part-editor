@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>svg-part-editor</title>
     <script src="https://cdn.tailwindcss.com/3.4.13"></script>
+    <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.2/dist/svg-pan-zoom.min.js"></script>
     <style>
       :root {
         color-scheme: light;
@@ -55,6 +56,27 @@
             >
               Download SVG
             </button>
+            <button
+              id="zoom-in-btn"
+              type="button"
+              class="rounded-lg border border-gray-200 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-widest text-gray-700 hover:bg-gray-100"
+            >
+              Zoom In
+            </button>
+            <button
+              id="zoom-out-btn"
+              type="button"
+              class="rounded-lg border border-gray-200 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-widest text-gray-700 hover:bg-gray-100"
+            >
+              Zoom Out
+            </button>
+            <button
+              id="reset-btn"
+              type="button"
+              class="rounded-lg border border-gray-200 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-widest text-gray-700 hover:bg-gray-100"
+            >
+              Reset View
+            </button>
           </div>
         </div>
       </section>
@@ -64,7 +86,7 @@
         </div>
         <div
           id="stage"
-          class="min-h-[320px] w-full rounded-xl border border-dashed border-gray-200 bg-gray-50 p-4 text-sm text-gray-500"
+          class="h-[420px] w-full rounded-xl border border-dashed border-gray-200 bg-gray-50 p-4 text-sm text-gray-500 overflow-hidden"
         >
           SVG will render here.
         </div>
@@ -87,7 +109,11 @@
       const stage = document.getElementById("stage");
       const serializeButton = document.getElementById("serialize-btn");
       const downloadButton = document.getElementById("download-btn");
+      const zoomInButton = document.getElementById("zoom-in-btn");
+      const zoomOutButton = document.getElementById("zoom-out-btn");
+      const resetButton = document.getElementById("reset-btn");
       let currentSvg = null;
+      let panZoomInstance = null;
 
       const ensureViewBox = (svg) => {
         const viewBox = svg.getAttribute("viewBox");
@@ -149,7 +175,23 @@
             stage.append(svg);
             svg.setAttribute("width", "100%");
             svg.setAttribute("height", "100%");
-            requestAnimationFrame(() => ensureViewBox(svg));
+            requestAnimationFrame(() => {
+              ensureViewBox(svg);
+              if (panZoomInstance) {
+                panZoomInstance.destroy();
+              }
+              panZoomInstance = window.svgPanZoom(svg, {
+                zoomEnabled: true,
+                panEnabled: true,
+                controlIconsEnabled: false,
+                fit: true,
+                center: true,
+                minZoom: 0.2,
+                maxZoom: 20,
+                zoomScaleSensitivity: 0.2,
+              });
+              console.info("svg-pan-zoom initialized.");
+            });
             currentSvg = svg;
           } else {
             stage.textContent = "No <svg> element found.";
@@ -198,6 +240,32 @@
         anchor.remove();
         URL.revokeObjectURL(url);
         console.info("SVG download triggered.");
+      });
+
+      zoomInButton.addEventListener("click", () => {
+        if (!panZoomInstance) {
+          status.textContent = "No SVG loaded to zoom.";
+          return;
+        }
+        panZoomInstance.zoomIn();
+      });
+
+      zoomOutButton.addEventListener("click", () => {
+        if (!panZoomInstance) {
+          status.textContent = "No SVG loaded to zoom.";
+          return;
+        }
+        panZoomInstance.zoomOut();
+      });
+
+      resetButton.addEventListener("click", () => {
+        if (!panZoomInstance) {
+          status.textContent = "No SVG loaded to reset.";
+          return;
+        }
+        panZoomInstance.resetZoom();
+        panZoomInstance.center();
+        panZoomInstance.fit();
       });
     </script>
   </body>
