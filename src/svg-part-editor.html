@@ -74,6 +74,7 @@
         const viewBox = svg.getAttribute("viewBox");
         if (viewBox) {
           svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+          console.info("SVG viewBox found:", viewBox);
           return;
         }
 
@@ -86,8 +87,12 @@
             const y = bbox.y - padY;
             const width = bbox.width + padX * 2;
             const height = bbox.height + padY * 2;
-            svg.setAttribute("viewBox", `${x} ${y} ${width} ${height}`);
+            const nextViewBox = `${x} ${y} ${width} ${height}`;
+            svg.setAttribute("viewBox", nextViewBox);
             svg.setAttribute("preserveAspectRatio", "xMidYMid meet");
+            console.info("SVG viewBox generated:", nextViewBox);
+          } else {
+            console.info("SVG viewBox could not be computed from bbox.");
           }
         } catch (error) {
           console.warn("Failed to compute SVG viewBox.", error);
@@ -114,6 +119,14 @@
 
           stage.innerHTML = "";
           if (svg) {
+            const pathCount = svg.querySelectorAll("path").length;
+            const nodeCount = svg.querySelectorAll("*").length;
+            console.info("SVG file name:", file.name);
+            console.info("SVG file size (bytes):", file.size);
+            console.info("SVG text length (chars):", text.length);
+            console.info("SVG path count:", pathCount);
+            console.info("SVG element count:", nodeCount);
+
             stage.append(svg);
             svg.setAttribute("width", "100%");
             svg.setAttribute("height", "100%");
