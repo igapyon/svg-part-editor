@@ -601,6 +601,7 @@
           });
           currentSvg = svg;
           clearSelection();
+          renderPartsList();
           if (!options.skipHistory) {
             pushSnapshot("load");
           }
@@ -609,6 +610,7 @@
           currentSvg = null;
           baseViewBox = null;
           clearSelection();
+          renderPartsList();
         }
         return svg;
       };
@@ -636,6 +638,90 @@
         strokeInput.value = strokeValue || "";
         strokeWidthInput.value = strokeWidthValue || "";
         setInputsEnabled(true);
+      };
+
+      const getEditableParts = () => {
+        if (!currentSvg) {
+          return [];
+        }
+        const groups = Array.from(currentSvg.querySelectorAll("g")).filter(
+          (node) => !node.classList.contains("svg-pan-zoom_viewport")
+        );
+        if (groups.length > 0) {
+          return groups;
+        }
+        return Array.from(currentSvg.children).filter(
+          (node) => node.tagName.toLowerCase() !== "defs"
+        );
+      };
+
+      const getPartLabel = (part, index) => {
+        const id = part.getAttribute("id");
+        const tag = part.tagName.toLowerCase();
+        if (id) {
+          return id;
+        }
+        return `${tag} ${index + 1}`;
+      };
+
+      const updatePartsSelection = () => {
+        const buttons = partsList.querySelectorAll("[data-part-index]");
+        buttons.forEach((button) => {
+          const index = Number(button.dataset.partIndex);
+          const element = currentParts[index];
+          if (element && element === selectedElement) {
+            button.classList.add("bg-slate-200", "text-slate-900");
+          } else {
+            button.classList.remove("bg-slate-200", "text-slate-900");
+          }
+        });
+      };
+
+      const renderPartsList = () => {
+        currentParts = getEditableParts();
+        partsList.innerHTML = "";
+        if (currentParts.length === 0) {
+          const placeholder = document.createElement("div");
+          placeholder.className =
+            "rounded-lg border border-dashed border-slate-200 bg-white px-3 py-2 text-[11px] text-slate-500";
+          placeholder.textContent = "No parts found.";
+          partsList.append(placeholder);
+          return;
+        }
+        currentParts.forEach((part, index) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.dataset.partIndex = String(index);
+          button.className =
+            "flex w-full items-center justify-between rounded-lg border border-slate-200 bg-white px-3 py-2 text-left text-[12px] text-slate-700 hover:bg-slate-100";
+          const label = document.createElement("span");
+          label.textContent = getPartLabel(part, index);
+          const tag = document.createElement("span");
+          tag.className = "text-[10px] uppercase tracking-widest text-slate-400";
+          tag.textContent = part.tagName.toLowerCase();
+          button.append(label, tag);
+          button.addEventListener("click", () => {
+            setSelection(part);
+          });
+          partsList.append(button);
+        });
+        updatePartsSelection();
+      };
+
+      const setSelection = (nextSelection) => {
+        if (selectedElement === nextSelection) {
+          return;
+        }
+        if (selectedElement) {
+          selectedElement.classList.remove("selected-part");
+        }
+        selectedElement = nextSelection;
+        if (selectedElement) {
+          selectedElement.classList.add("selected-part");
+          attachDragHandlers(selectedElement);
+        }
+        updateAttributeInputs();
+        updatePartsSelection();
       };
 
       const applyAttribute = (name, value) => {
@@ -736,17 +822,7 @@
         }
 
         const nextSelection = resolveSelectablePart(target);
-        if (selectedElement === nextSelection) {
-          return;
-        }
-
-        if (selectedElement) {
-          selectedElement.classList.remove("selected-part");
-        }
-        selectedElement = nextSelection;
-        selectedElement.classList.add("selected-part");
-        attachDragHandlers(selectedElement);
-        updateAttributeInputs();
+        setSelection(nextSelection);
       });
 
       fillInput.addEventListener("input", (event) => {
@@ -823,6 +899,10 @@
         panZoomInstance.resetZoom();
         panZoomInstance.center();
         panZoomInstance.fit();
+      });
+
+      refreshPartsButton.addEventListener("click", () => {
+        renderPartsList();
       });
 
       const restoreSnapshot = (serialized) => {
