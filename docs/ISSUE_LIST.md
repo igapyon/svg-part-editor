@@ -257,6 +257,17 @@
 - 追加するモード候補の一覧が整理されている  
 - 各候補の目的と優先度が簡潔に記録されている  
 - 非採用の理由（必要なら）を記録している  
+**候補（洗い出し）**
+- 基本操作: Rotate / Scale / Duplicate / Delete / Nudge  
+- 整列・配置: Align / Distribute / Snap  
+- 計測・確認: Measure / Inspect  
+- 表示・選択: Lasso・Marquee Select / Lock・Unlock / Hide・Show  
+- 構造: Group・Ungroup / Layer・Order  
+- 作成: Draw（図形作成モード、Issue 31.3 と関連）  
+**難易度（補足）**
+- 高: Lasso・Marquee Select（複数選択UI/判定）, Snap/Align/Distribute（幾何計算/ガイド）, Group・Ungroup/Layer・Order（構造変更の整合）, Measure（座標系とUI）, Draw（新規作成フロー）  
+- 中: Rotate/Scale（中心/数値入力/UI設計）, Lock・Unlock/Hide・Show（状態管理/UI）  
+- 低: Duplicate（cloneと配置）, Delete（削除）, Nudge（キー移動）, Inspect（表示のみなら簡易）  
 
 ---
 
