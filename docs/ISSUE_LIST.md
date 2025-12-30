@@ -263,6 +263,10 @@
 - 作成対象のPart種別（例: rect/circle/path など）が整理されている  
 - UI導線（ツール/メニュー/ショートカット等）の案が決まっている  
 - 参照構造や `<g>` 最小単位との整合性が検討されている  
+**メモ**
+- 初期バージョン対象: rect / circle / ellipse / line  
+- 初期バージョン対象外: path / polygon / polyline / text / image / g  
+- 推奨順: 基本図形作成（rect/circle/ellipse/line）→ 複数選択 → グループ化（g）  
 
 ---
 
