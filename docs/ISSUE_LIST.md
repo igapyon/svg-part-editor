@@ -1,4 +1,4 @@
-# ISSUES.md
+# ISSUE_LIST.md
 
 ## 🧱 Phase 0: プロジェクト基盤
 

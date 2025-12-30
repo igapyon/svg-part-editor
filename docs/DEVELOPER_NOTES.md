@@ -11,7 +11,7 @@
 ## 作業ファイル
 
 - メインの作業ファイル: `src/svg-part-editor.html`
-- ドキュメント: `README.md`, `docs/ISSUES.md`
+- ドキュメント: `README.md`, `docs/ISSUE_LIST.md`
 
 ## 設計制約
 
@@ -33,8 +33,8 @@
 ## 開発フロー
 
 - `src/svg-part-editor.html` をブラウザで直接開いて動作確認します。
-- 作業項目は `docs/ISSUES.md` で管理します。
-- `docs/ISSUES.md` の内容は GitHub Issue にも登録済みです。
+- 作業項目は `docs/ISSUE_LIST.md` で管理します。
+- `docs/ISSUE_LIST.md` の内容は GitHub Issue にも登録済みです。
 
 ## 命名
 
