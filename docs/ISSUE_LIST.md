@@ -6,17 +6,23 @@
 **Done条件**
 - `src/svg-part-editor.html` を直接開いて動く  
 - 画面が表示される（空でもOK）
+**ステータス**
+- 完了
 
 ### Issue 02: CDN依存を固定バージョンで読み込む
 **Done条件**
 - SVG.js / Interact.js / svg-pan-zoom を読み込み  
 - `@latest` を使っていない  
 - console errorなし
+**ステータス**
+- 完了
 
 ### Issue 03: 基本レイアウトを作る（Toolbar / Stage / Properties）
 **Done条件**
 - ツールバー、キャンバス、属性パネル領域がある  
 - 最低限のCSSで崩れない  
+**ステータス**
+- 完了
 
 ---
 
