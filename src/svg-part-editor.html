@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>svg-part-editor</title>
     <script src="https://cdn.tailwindcss.com/3.4.13"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/svg.js/3.2.5/svg.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/interactjs@1.10.27/dist/interact.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/svg-pan-zoom@3.6.2/dist/svg-pan-zoom.min.js"></script>
     <style>
       :root {
@@ -118,6 +120,7 @@
       let currentSvg = null;
       let selectedElement = null;
       let panZoomInstance = null;
+      let interactTarget = null;
 
       const ensureViewBox = (svg) => {
         const viewBox = svg.getAttribute("viewBox");
@@ -197,11 +200,11 @@
               console.info("svg-pan-zoom initialized.");
             });
             currentSvg = svg;
-            selectedElement = null;
+            clearSelection();
           } else {
             stage.textContent = "No <svg> element found.";
             currentSvg = null;
-            selectedElement = null;
+            clearSelection();
           }
         } catch (error) {
           status.textContent = "Failed to read file.";
@@ -211,6 +214,85 @@
           console.error(error);
         }
       });
+
+      const clearSelection = () => {
+        if (selectedElement) {
+          selectedElement.classList.remove("selected-part");
+        }
+        selectedElement = null;
+        if (interactTarget) {
+          interact(interactTarget).unset();
+          interactTarget = null;
+        }
+        if (panZoomInstance) {
+          panZoomInstance.enablePan();
+        }
+      };
+
+      const resolveSelectablePart = (target) => {
+        let cursor = target;
+        while (cursor && cursor !== currentSvg) {
+          if (cursor.tagName === "g") {
+            if (!cursor.classList.contains("svg-pan-zoom_viewport")) {
+              return cursor;
+            }
+          }
+          cursor = cursor.parentElement;
+        }
+        return target;
+      };
+
+      const screenDeltaToSvgDelta = (dx, dy) => {
+        if (!currentSvg) {
+          return { x: dx, y: dy };
+        }
+        const viewport = currentSvg.querySelector(".svg-pan-zoom_viewport") || currentSvg;
+        const matrix = viewport.getScreenCTM();
+        if (!matrix) {
+          return { x: dx, y: dy };
+        }
+        const inverse = matrix.inverse();
+        if (typeof DOMPoint === "function") {
+          const a = new DOMPoint(0, 0).matrixTransform(inverse);
+          const b = new DOMPoint(dx, dy).matrixTransform(inverse);
+          return { x: b.x - a.x, y: b.y - a.y };
+        }
+        const pointA = currentSvg.createSVGPoint();
+        const pointB = currentSvg.createSVGPoint();
+        pointA.x = 0;
+        pointA.y = 0;
+        pointB.x = dx;
+        pointB.y = dy;
+        const a = pointA.matrixTransform(inverse);
+        const b = pointB.matrixTransform(inverse);
+        return { x: b.x - a.x, y: b.y - a.y };
+      };
+
+      const attachDragHandlers = (target) => {
+        if (interactTarget && interactTarget !== target) {
+          interact(interactTarget).unset();
+        }
+        interactTarget = target;
+        interact(target).draggable({
+          listeners: {
+            start() {
+              if (panZoomInstance) {
+                panZoomInstance.disablePan();
+              }
+            },
+            move(event) {
+              const element = SVG(event.target);
+              const delta = screenDeltaToSvgDelta(event.dx, event.dy);
+              element.dmove(delta.x, delta.y);
+            },
+            end() {
+              if (panZoomInstance) {
+                panZoomInstance.enablePan();
+              }
+            },
+          },
+        });
+      };
 
       stage.addEventListener("click", (event) => {
         if (!currentSvg) {
@@ -223,15 +305,11 @@
         }
 
         if (target === stage || target === currentSvg) {
-          if (selectedElement) {
-            selectedElement.classList.remove("selected-part");
-            selectedElement = null;
-          }
+          clearSelection();
           return;
         }
 
-        const closestGroup = target.closest("g");
-        const nextSelection = closestGroup || target;
+        const nextSelection = resolveSelectablePart(target);
         if (selectedElement === nextSelection) {
           return;
         }
@@ -241,6 +319,7 @@
         }
         selectedElement = nextSelection;
         selectedElement.classList.add("selected-part");
+        attachDragHandlers(selectedElement);
       });
 
       const serializeCurrentSvg = () => {
