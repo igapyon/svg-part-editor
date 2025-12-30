@@ -82,6 +82,20 @@
             >
               Reset View
             </button>
+            <button
+              id="undo-btn"
+              type="button"
+              class="rounded-lg border border-gray-200 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-widest text-gray-700 hover:bg-gray-100"
+            >
+              Undo
+            </button>
+            <button
+              id="redo-btn"
+              type="button"
+              class="rounded-lg border border-gray-200 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-widest text-gray-700 hover:bg-gray-100"
+            >
+              Redo
+            </button>
           </div>
         </div>
       </section>
@@ -156,6 +170,8 @@
       const zoomInButton = document.getElementById("zoom-in-btn");
       const zoomOutButton = document.getElementById("zoom-out-btn");
       const resetButton = document.getElementById("reset-btn");
+      const undoButton = document.getElementById("undo-btn");
+      const redoButton = document.getElementById("redo-btn");
       const fillInput = document.getElementById("attr-fill");
       const strokeInput = document.getElementById("attr-stroke");
       const strokeWidthInput = document.getElementById("attr-stroke-width");
@@ -163,6 +179,12 @@
       let selectedElement = null;
       let panZoomInstance = null;
       let interactTarget = null;
+      let isRestoring = false;
+      let baseViewBox = null;
+      const undoStack = [];
+      const redoStack = [];
+      const maxHistory = 30;
+      let pendingSnapshot = null;
 
       const ensureViewBox = (svg) => {
         const viewBox = svg.getAttribute("viewBox");
@@ -207,11 +229,7 @@
           status.textContent = `Loaded ${file.name} (${text.length} chars).`;
           output.value = text;
 
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(text, "image/svg+xml");
-          const svg = doc.querySelector("svg");
-
-          stage.innerHTML = "";
+          const svg = loadSvgFromString(text);
           if (svg) {
             const pathCount = svg.querySelectorAll("path").length;
             const nodeCount = svg.querySelectorAll("*").length;
@@ -220,33 +238,6 @@
             console.info("SVG text length (chars):", text.length);
             console.info("SVG path count:", pathCount);
             console.info("SVG element count:", nodeCount);
-
-            stage.append(svg);
-            svg.setAttribute("width", "100%");
-            svg.setAttribute("height", "100%");
-            requestAnimationFrame(() => {
-              ensureViewBox(svg);
-              if (panZoomInstance) {
-                panZoomInstance.destroy();
-              }
-              panZoomInstance = window.svgPanZoom(svg, {
-                zoomEnabled: true,
-                panEnabled: true,
-                controlIconsEnabled: false,
-                fit: true,
-                center: true,
-                minZoom: 0.2,
-                maxZoom: 20,
-                zoomScaleSensitivity: 0.2,
-              });
-              console.info("svg-pan-zoom initialized.");
-            });
-            currentSvg = svg;
-            clearSelection();
-          } else {
-            stage.textContent = "No <svg> element found.";
-            currentSvg = null;
-            clearSelection();
           }
         } catch (error) {
           status.textContent = "Failed to read file.";
@@ -270,6 +261,94 @@
           panZoomInstance.enablePan();
         }
         updateAttributeInputs();
+      };
+
+      const cloneSvgForSerialization = (svg) => {
+        const clone = svg.cloneNode(true);
+        if (baseViewBox) {
+          clone.setAttribute("viewBox", baseViewBox);
+          clone.setAttribute("preserveAspectRatio", "xMidYMid meet");
+        }
+        return clone;
+      };
+
+      const serializeSvgElement = (svg) => {
+        const serializer = new XMLSerializer();
+        return serializer.serializeToString(svg);
+      };
+
+      const pushSnapshot = (reason = "update") => {
+        if (!currentSvg || isRestoring) {
+          return;
+        }
+        const serialized = serializeSvgElement(cloneSvgForSerialization(currentSvg));
+        const last = undoStack[undoStack.length - 1];
+        if (last === serialized) {
+          return;
+        }
+        undoStack.push(serialized);
+        if (undoStack.length > maxHistory) {
+          undoStack.shift();
+        }
+        redoStack.length = 0;
+        console.info("Snapshot saved:", reason, "stack", undoStack.length);
+      };
+
+      const scheduleSnapshot = (reason) => {
+        if (pendingSnapshot) {
+          clearTimeout(pendingSnapshot);
+        }
+        pendingSnapshot = setTimeout(() => {
+          pushSnapshot(reason);
+          pendingSnapshot = null;
+        }, 250);
+      };
+
+      const loadSvgFromString = (text, options = {}) => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(text, "image/svg+xml");
+        const svg = doc.querySelector("svg");
+
+        stage.innerHTML = "";
+        if (svg) {
+          stage.append(svg);
+          svg.setAttribute("width", "100%");
+          svg.setAttribute("height", "100%");
+          requestAnimationFrame(() => {
+            ensureViewBox(svg);
+            if (panZoomInstance) {
+              panZoomInstance.destroy();
+            }
+            baseViewBox = svg.getAttribute("viewBox");
+            const shouldFit = !options.viewState;
+            panZoomInstance = window.svgPanZoom(svg, {
+              zoomEnabled: true,
+              panEnabled: true,
+              controlIconsEnabled: false,
+              fit: shouldFit,
+              center: shouldFit,
+              minZoom: 0.2,
+              maxZoom: 20,
+              zoomScaleSensitivity: 0.2,
+            });
+            if (options.viewState) {
+              panZoomInstance.zoom(options.viewState.zoom);
+              panZoomInstance.pan(options.viewState.pan);
+            }
+            console.info("svg-pan-zoom initialized.");
+          });
+          currentSvg = svg;
+          clearSelection();
+          if (!options.skipHistory) {
+            pushSnapshot("load");
+          }
+        } else {
+          stage.textContent = "No <svg> element found.";
+          currentSvg = null;
+          baseViewBox = null;
+          clearSelection();
+        }
+        return svg;
       };
 
       const setInputsEnabled = (enabled) => {
@@ -359,15 +438,20 @@
               if (panZoomInstance) {
                 panZoomInstance.disablePan();
               }
+              interactTarget.dataset.moved = "false";
             },
             move(event) {
               const element = SVG(event.target);
               const delta = screenDeltaToSvgDelta(event.dx, event.dy);
               element.dmove(delta.x, delta.y);
+              interactTarget.dataset.moved = "true";
             },
             end() {
               if (panZoomInstance) {
                 panZoomInstance.enablePan();
+              }
+              if (interactTarget.dataset.moved === "true") {
+                pushSnapshot("move");
               }
             },
           },
@@ -405,14 +489,17 @@
 
       fillInput.addEventListener("input", (event) => {
         applyAttribute("fill", event.target.value);
+        scheduleSnapshot("fill");
       });
 
       strokeInput.addEventListener("input", (event) => {
         applyAttribute("stroke", event.target.value);
+        scheduleSnapshot("stroke");
       });
 
       strokeWidthInput.addEventListener("input", (event) => {
         applyAttribute("stroke-width", event.target.value);
+        scheduleSnapshot("stroke-width");
       });
 
       const serializeCurrentSvg = () => {
@@ -422,8 +509,7 @@
           return null;
         }
         ensureViewBox(currentSvg);
-        const serializer = new XMLSerializer();
-        const serialized = serializer.serializeToString(currentSvg);
+        const serialized = serializeSvgElement(cloneSvgForSerialization(currentSvg));
         output.value = serialized;
         status.textContent = `Serialized SVG (${serialized.length} chars).`;
         console.info("SVG serialized length (chars):", serialized.length);
@@ -475,6 +561,61 @@
         panZoomInstance.resetZoom();
         panZoomInstance.center();
         panZoomInstance.fit();
+      });
+
+      const restoreSnapshot = (serialized) => {
+        isRestoring = true;
+        try {
+          const viewState = panZoomInstance
+            ? { zoom: panZoomInstance.getZoom(), pan: panZoomInstance.getPan() }
+            : null;
+          loadSvgFromString(serialized, { skipHistory: true, viewState });
+        } finally {
+          isRestoring = false;
+        }
+      };
+
+      const undo = () => {
+        if (undoStack.length < 2) {
+          status.textContent = "Nothing to undo.";
+          return;
+        }
+        const current = undoStack.pop();
+        redoStack.push(current);
+        const previous = undoStack[undoStack.length - 1];
+        restoreSnapshot(previous);
+      };
+
+      const redo = () => {
+        if (redoStack.length === 0) {
+          status.textContent = "Nothing to redo.";
+          return;
+        }
+        const next = redoStack.pop();
+        undoStack.push(next);
+        restoreSnapshot(next);
+      };
+
+      undoButton.addEventListener("click", undo);
+      redoButton.addEventListener("click", redo);
+
+      document.addEventListener("keydown", (event) => {
+        const isMac = navigator.platform.toLowerCase().includes("mac");
+        const modKey = isMac ? event.metaKey : event.ctrlKey;
+        const key = event.key.toLowerCase();
+        if (!modKey || (key !== "z" && key !== "y")) {
+          return;
+        }
+        event.preventDefault();
+        if (key === "y") {
+          redo();
+          return;
+        }
+        if (event.shiftKey) {
+          redo();
+        } else {
+          undo();
+        }
       });
     </script>
   </body>
