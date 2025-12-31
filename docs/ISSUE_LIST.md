@@ -264,6 +264,23 @@
 - 追加するモード候補の一覧が整理されている  
 - 各候補の目的と優先度が簡潔に記録されている  
 - 非採用の理由（必要なら）を記録している  
+**ステータス**
+- 完了
+**仕様メモ（確定）**
+- 次の1-2スプリント候補に絞る  
+- 右側アイコンは5-6個を上限にし、超える分は "More" メニュー併用  
+**優先候補（次の1-2スプリント）**
+- Duplicate: 選択パーツの複製と簡易配置  
+- Delete: 選択パーツの削除  
+- Nudge: キー操作による微小移動  
+- Rotate: 角度指定の回転（UIは簡易でOK）  
+- Scale: 拡縮（ハンドル or 数値指定、簡易でOK）  
+**保留候補（次段階以降）**
+- Measure / Inspect: 表示系モード  
+- Align / Distribute / Snap: 幾何計算とガイド  
+- Lasso / Marquee Select: 複数選択UI  
+- Group / Ungroup / Layer / Order: 構造変更  
+- Draw: 新規作成（Issue 31.3 と連動）  
 **候補（洗い出し）**
 - 基本操作: Rotate / Scale / Duplicate / Delete / Nudge  
 - 整列・配置: Align / Distribute / Snap  
@@ -285,10 +302,28 @@
 - 作成対象のPart種別（例: rect/circle/path など）が整理されている  
 - UI導線（ツール/メニュー/ショートカット等）の案が決まっている  
 - 参照構造や `<g>` 最小単位との整合性が検討されている  
+**ステータス**
+- 完了
 **メモ**
 - 初期バージョン対象: rect / circle / ellipse / line  
 - 初期バージョン対象外: path / polygon / polyline / text / image / g  
 - 推奨順: 基本図形作成（rect/circle/ellipse/line）→ 複数選択 → グループ化（g）  
+**仕様メモ（確定）**
+- 作成はクリック&ドラッグでサイズ決定  
+- 新規作成は `<g>` で包む  
+- 初期属性は固定値  
+  - rect/circle/ellipse: `fill="#e2e8f0"`, `stroke="#111827"`, `stroke-width="1"`  
+  - line: `fill="none"`, `stroke="#111827"`, `stroke-width="1"`  
+
+---
+
+## 🧩 Phase 7.7: Part作成 UI 導線
+
+### Issue 31.4: Part作成 UI 導線の具体化（GitHub #64）
+**Done条件**
+- 作成モードの導線（ツール配置・ショートカット・切り替え手順）が決まっている  
+- 作成時の操作フロー（開始/ドラッグ/確定/キャンセル）が明文化されている  
+- 右側アイコンの上限（5-6個）超過時のUI方針が決まっている  
 
 ---
 
