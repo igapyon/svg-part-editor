@@ -57,8 +57,8 @@
         <div class="flex flex-wrap items-center justify-end gap-4">
           <div class="flex items-center gap-2">
             <label
-              class="tooltip inline-flex h-10 w-10 items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-50 text-slate-600 hover:bg-slate-100"
-              data-tip="Load SVG"
+              class="tooltip inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-900 bg-slate-900 text-white hover:bg-slate-800"
+              data-tip="Open SVG"
             >
               <input id="svg-file" type="file" accept=".svg" class="hidden" />
               <svg
@@ -76,28 +76,6 @@
               </svg>
               <span class="sr-only">Load SVG</span>
             </label>
-            <button
-              id="serialize-btn"
-              type="button"
-              class="tooltip inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-900 bg-slate-900 text-white hover:bg-slate-800"
-              data-tip="Serialize SVG"
-            >
-              <svg
-                class="h-4 w-4"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M8 9l-4 3 4 3" />
-                <path d="M16 9l4 3-4 3" />
-                <path d="M12 8l-1.5 8" />
-              </svg>
-              <span class="sr-only">Serialize SVG</span>
-            </button>
             <button
               id="download-btn"
               type="button"
@@ -234,6 +212,30 @@
               <span class="sr-only">Reset View</span>
             </button>
           </div>
+          <div class="flex items-center gap-2 border-l border-slate-200 pl-3">
+            <button
+              id="serialize-btn"
+              type="button"
+              class="tooltip inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-100"
+              data-tip="Serialize SVG (Dev)"
+            >
+              <svg
+                class="h-4 w-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M8 9l-4 3 4 3" />
+                <path d="M16 9l4 3-4 3" />
+                <path d="M12 8l-1.5 8" />
+              </svg>
+              <span class="sr-only">Serialize SVG</span>
+            </button>
+          </div>
         </div>
         </div>
       </div>
@@ -287,9 +289,32 @@
         <div class="mb-2 text-xs font-semibold uppercase tracking-widest text-slate-500">Stage</div>
         <div
           id="stage"
-          class="h-[620px] w-full rounded-xl border border-dashed border-slate-200 bg-slate-50 p-4 text-sm text-slate-500 overflow-hidden"
+          class="flex h-[620px] w-full flex-col items-center justify-center gap-4 rounded-xl border border-dashed border-slate-200 bg-slate-50 p-6 text-sm text-slate-500 overflow-hidden"
         >
-          SVG will render here.
+          <div class="text-base font-semibold text-slate-600">Open an SVG to start</div>
+          <div class="max-w-[320px] text-center text-xs text-slate-500">
+            Click the button below to choose a file. Parts are detected from the nearest
+            <code>&lt;g&gt;</code> element.
+          </div>
+          <label
+            for="svg-file"
+            class="inline-flex h-11 items-center gap-2 rounded-full border border-slate-900 bg-slate-900 px-5 text-xs font-semibold uppercase tracking-widest text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-slate-800"
+          >
+            <svg
+              class="h-4 w-4"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <path d="M3 7h5l2 2h11a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z" />
+              <path d="M3 7V5a2 2 0 0 1 2-2h4l2 2h9" />
+            </svg>
+            Open SVG
+          </label>
         </div>
       </section>
       <aside class="w-[300px] shrink-0 space-y-4">
@@ -346,9 +371,11 @@
       <aside class="w-[56px] shrink-0 rounded-2xl border border-slate-200 bg-white p-2 shadow-sm">
         <div class="flex flex-col items-center gap-2">
           <button
-            class="tooltip inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-slate-100 text-slate-700"
+            id="mode-select"
+            class="tooltip inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-900 bg-slate-900 text-white"
             data-tip="Select"
             type="button"
+            aria-pressed="true"
           >
             <svg
               class="h-4 w-4"
@@ -364,9 +391,11 @@
             </svg>
           </button>
           <button
+            id="mode-move"
             class="tooltip inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-100"
             data-tip="Move"
             type="button"
+            aria-pressed="false"
           >
             <svg
               class="h-4 w-4"
@@ -387,9 +416,11 @@
             </svg>
           </button>
           <button
+            id="mode-pan"
             class="tooltip inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 hover:bg-slate-100"
             data-tip="Pan"
             type="button"
+            aria-pressed="false"
           >
             <svg
               class="h-4 w-4"
@@ -427,6 +458,9 @@
       const strokeWidthInput = document.getElementById("attr-stroke-width");
       const partsList = document.getElementById("parts-list");
       const refreshPartsButton = document.getElementById("refresh-parts-btn");
+      const modeSelectButton = document.getElementById("mode-select");
+      const modeMoveButton = document.getElementById("mode-move");
+      const modePanButton = document.getElementById("mode-pan");
       let currentSvg = null;
       let selectedElement = null;
       let panZoomInstance = null;
@@ -438,6 +472,54 @@
       const redoStack = [];
       const maxHistory = 30;
       let pendingSnapshot = null;
+      let currentMode = "select";
+
+      const modeConfig = {
+        select: { button: modeSelectButton, label: "Select" },
+        move: { button: modeMoveButton, label: "Move" },
+        pan: { button: modePanButton, label: "Pan" },
+      };
+
+      const setMode = (nextMode) => {
+        if (!modeConfig[nextMode]) {
+          return;
+        }
+        currentMode = nextMode;
+        Object.entries(modeConfig).forEach(([mode, { button }]) => {
+          const isActive = mode === nextMode;
+          button.setAttribute("aria-pressed", String(isActive));
+          button.classList.toggle("bg-slate-900", isActive);
+          button.classList.toggle("border-slate-900", isActive);
+          button.classList.toggle("text-white", isActive);
+          button.classList.toggle("bg-white", !isActive);
+          button.classList.toggle("border-slate-200", !isActive);
+          button.classList.toggle("text-slate-700", !isActive);
+          button.classList.toggle("hover:bg-slate-100", !isActive);
+        });
+
+        if (panZoomInstance) {
+          if (currentMode === "pan") {
+            panZoomInstance.enablePan();
+            panZoomInstance.enableZoom();
+            panZoomInstance.enableDblClickZoom();
+          } else {
+            panZoomInstance.disablePan();
+            panZoomInstance.disableZoom();
+            panZoomInstance.disableDblClickZoom();
+          }
+        }
+
+        if (currentMode === "move" && selectedElement) {
+          attachDragHandlers(selectedElement);
+        } else if (interactTarget) {
+          interact(interactTarget).unset();
+          interactTarget = null;
+        }
+      };
+
+      modeSelectButton.addEventListener("click", () => setMode("select"));
+      modeMoveButton.addEventListener("click", () => setMode("move"));
+      modePanButton.addEventListener("click", () => setMode("pan"));
 
       const ensureViewBox = (svg) => {
         const viewBox = svg.getAttribute("viewBox");
@@ -498,6 +580,7 @@
             console.info("SVG path count:", pathCount);
             console.info("SVG element count:", nodeCount);
           }
+          fileInput.value = "";
         } catch (error) {
           status.textContent = "Failed to read file.";
           output.value = "";
@@ -515,9 +598,6 @@
         if (interactTarget) {
           interact(interactTarget).unset();
           interactTarget = null;
-        }
-        if (panZoomInstance) {
-          panZoomInstance.enablePan();
         }
         updateAttributeInputs();
         updatePartsSelection();
@@ -604,6 +684,7 @@
               panZoomInstance.pan(options.viewState.pan);
             }
             console.info("svg-pan-zoom initialized.");
+            setMode(currentMode);
           });
           currentSvg = svg;
           clearSelection();
@@ -646,20 +727,46 @@
         setInputsEnabled(true);
       };
 
+      const referenceTags = new Set([
+        "defs",
+        "symbol",
+        "clippath",
+        "mask",
+        "pattern",
+        "marker",
+        "use",
+      ]);
+
+      const isInDefs = (node) => !!(node && node.closest && node.closest("defs"));
+
+      const isNonEditableElement = (node) => {
+        if (!(node instanceof Element)) {
+          return true;
+        }
+        if (node.classList.contains("svg-pan-zoom_viewport")) {
+          return true;
+        }
+        const tag = node.tagName ? node.tagName.toLowerCase() : "";
+        if (referenceTags.has(tag)) {
+          return true;
+        }
+        if (isInDefs(node)) {
+          return true;
+        }
+        return false;
+      };
+
       const getEditableParts = () => {
         if (!currentSvg) {
           return [];
         }
         const groups = Array.from(currentSvg.querySelectorAll("g")).filter(
-          (node) => !node.classList.contains("svg-pan-zoom_viewport")
+          (node) => !isNonEditableElement(node)
         );
         if (groups.length > 0) {
           return groups;
         }
-        return Array.from(currentSvg.children).filter((node) => {
-          const tag = node.tagName.toLowerCase();
-          return tag !== "defs" && tag !== "use";
-        });
+        return Array.from(currentSvg.children).filter((node) => !isNonEditableElement(node));
       };
 
       const getPartLabel = (part, index) => {
@@ -725,7 +832,9 @@
         selectedElement = nextSelection;
         if (selectedElement) {
           selectedElement.classList.add("selected-part");
-          attachDragHandlers(selectedElement);
+          if (currentMode === "move") {
+            attachDragHandlers(selectedElement);
+          }
         }
         updateAttributeInputs();
         updatePartsSelection();
@@ -770,8 +879,12 @@
       const resolveSelectablePart = (target) => {
         const useElement = findUseElement(target);
         if (useElement) {
+          if (isInDefs(useElement)) {
+            status.textContent = "This <use> is inside <defs> and not editable.";
+            return null;
+          }
           const referenced = resolveUseReference(useElement);
-          if (referenced) {
+          if (referenced && !isNonEditableElement(referenced)) {
             status.textContent = "Selected referenced element for <use>.";
             return referenced;
           }
@@ -779,16 +892,19 @@
           return null;
         }
 
+        if (isNonEditableElement(target)) {
+          status.textContent = "This element is not editable.";
+          return null;
+        }
+
         let cursor = target;
         while (cursor && cursor !== currentSvg) {
-          if (cursor.tagName === "g") {
-            if (!cursor.classList.contains("svg-pan-zoom_viewport")) {
-              return cursor;
-            }
+          if (cursor.tagName === "g" && !isNonEditableElement(cursor)) {
+            return cursor;
           }
           cursor = cursor.parentElement;
         }
-        return target;
+        return isNonEditableElement(target) ? null : target;
       };
 
       const screenDeltaToSvgDelta = (dx, dy) => {
@@ -818,6 +934,9 @@
       };
 
       const attachDragHandlers = (target) => {
+        if (currentMode !== "move") {
+          return;
+        }
         if (interactTarget && interactTarget !== target) {
           interact(interactTarget).unset();
         }
@@ -838,7 +957,11 @@
             },
             end() {
               if (panZoomInstance) {
-                panZoomInstance.enablePan();
+                if (currentMode === "pan") {
+                  panZoomInstance.enablePan();
+                } else {
+                  panZoomInstance.disablePan();
+                }
               }
               if (interactTarget.dataset.moved === "true") {
                 pushSnapshot("move");
@@ -850,6 +973,9 @@
 
       stage.addEventListener("click", (event) => {
         if (!currentSvg) {
+          return;
+        }
+        if (currentMode === "pan") {
           return;
         }
 
@@ -926,6 +1052,10 @@
           status.textContent = "No SVG loaded to zoom.";
           return;
         }
+        if (currentMode !== "pan") {
+          status.textContent = "Zoom is available only in Pan mode.";
+          return;
+        }
         panZoomInstance.zoomIn();
       });
 
@@ -934,12 +1064,20 @@
           status.textContent = "No SVG loaded to zoom.";
           return;
         }
+        if (currentMode !== "pan") {
+          status.textContent = "Zoom is available only in Pan mode.";
+          return;
+        }
         panZoomInstance.zoomOut();
       });
 
       resetButton.addEventListener("click", () => {
         if (!panZoomInstance) {
           status.textContent = "No SVG loaded to reset.";
+          return;
+        }
+        if (currentMode !== "pan") {
+          status.textContent = "Reset view is available only in Pan mode.";
           return;
         }
         panZoomInstance.resetZoom();

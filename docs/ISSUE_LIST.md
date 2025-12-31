@@ -183,6 +183,16 @@
 **ステータス**
 - 完了
 
+### Issue 25.1: Propertiesの表示/編集可能項目の設計を整理する（GitHub #53）
+**Done条件**
+- Propertiesで表示する項目一覧が決まっている  
+- 各項目が「編集可能 / 表示のみ / 対象外」のいずれかに分類されている  
+- 判断理由（例: `<g>` 最小単位、参照構造維持、安全性）が簡潔に記録されている  
+**メモ**
+- タブ分けで構成する  
+- 表示のみ（初期）: id / class / tagName / transform（生文字列）/ bbox（x/y/width/height）  
+- 選択要素のソース表示は参照を解決せず、そのまま表示する前提  
+
 ---
 
 ## ↩️ Phase 6: Undo / Redo（G 分解）
@@ -231,6 +241,89 @@
 - 保存後の見た目が一致する  
 **ステータス**
 - 完了
+
+---
+
+## 🧭 Phase 7.5: UIモード
+
+### Issue 31.1: Select / Move / Pan アイコンにモード機能を割り当てる（GitHub #54）
+**Done条件**
+- 右側アイコンで Select / Move / Pan のモードが切り替えられる  
+- モードに応じてクリック/ドラッグ挙動が変わる  
+- 現在のモードが視覚的に分かる  
+**ステータス**
+- 完了
+**仕様メモ（確定）**
+- モードは Select / Move / Pan の3つに限定する
+- Select: クリック選択/解除のみ、ドラッグ移動は無効
+- Move: クリック選択 + ドラッグ移動を許可
+- Pan: 背景ドラッグでビュー移動のみ、選択はしない
+
+### Issue 31.2: 追加モード候補（Rotate/Scale/Duplicate/Measure等）を検討する（GitHub #55）
+**Done条件**
+- 追加するモード候補の一覧が整理されている  
+- 各候補の目的と優先度が簡潔に記録されている  
+- 非採用の理由（必要なら）を記録している  
+**ステータス**
+- 完了
+**仕様メモ（確定）**
+- 次の1-2スプリント候補に絞る  
+- 右側アイコンは5-6個を上限にし、超える分は "More" メニュー併用  
+**優先候補（次の1-2スプリント）**
+- Duplicate: 選択パーツの複製と簡易配置  
+- Delete: 選択パーツの削除  
+- Nudge: キー操作による微小移動  
+- Rotate: 角度指定の回転（UIは簡易でOK）  
+- Scale: 拡縮（ハンドル or 数値指定、簡易でOK）  
+**保留候補（次段階以降）**
+- Measure / Inspect: 表示系モード  
+- Align / Distribute / Snap: 幾何計算とガイド  
+- Lasso / Marquee Select: 複数選択UI  
+- Group / Ungroup / Layer / Order: 構造変更  
+- Draw: 新規作成（Issue 31.3 と連動）  
+**候補（洗い出し）**
+- 基本操作: Rotate / Scale / Duplicate / Delete / Nudge  
+- 整列・配置: Align / Distribute / Snap  
+- 計測・確認: Measure / Inspect  
+- 表示・選択: Lasso・Marquee Select / Lock・Unlock / Hide・Show  
+- 構造: Group・Ungroup / Layer・Order  
+- 作成: Draw（図形作成モード、Issue 31.3 と関連）  
+**難易度（補足）**
+- 高: Lasso・Marquee Select（複数選択UI/判定）, Snap/Align/Distribute（幾何計算/ガイド）, Group・Ungroup/Layer・Order（構造変更の整合）, Measure（座標系とUI）, Draw（新規作成フロー）  
+- 中: Rotate/Scale（中心/数値入力/UI設計）, Lock・Unlock/Hide・Show（状態管理/UI）  
+- 低: Duplicate（cloneと配置）, Delete（削除）, Nudge（キー移動）, Inspect（表示のみなら簡易）  
+
+---
+
+## 🧩 Phase 7.6: Part作成
+
+### Issue 31.3: 新規 Part 作成機能の検討（GitHub #56）
+**Done条件**
+- 作成対象のPart種別（例: rect/circle/path など）が整理されている  
+- UI導線（ツール/メニュー/ショートカット等）の案が決まっている  
+- 参照構造や `<g>` 最小単位との整合性が検討されている  
+**ステータス**
+- 完了
+**メモ**
+- 初期バージョン対象: rect / circle / ellipse / line  
+- 初期バージョン対象外: path / polygon / polyline / text / image / g  
+- 推奨順: 基本図形作成（rect/circle/ellipse/line）→ 複数選択 → グループ化（g）  
+**仕様メモ（確定）**
+- 作成はクリック&ドラッグでサイズ決定  
+- 新規作成は `<g>` で包む  
+- 初期属性は固定値  
+  - rect/circle/ellipse: `fill="#e2e8f0"`, `stroke="#111827"`, `stroke-width="1"`  
+  - line: `fill="none"`, `stroke="#111827"`, `stroke-width="1"`  
+
+---
+
+## 🧩 Phase 7.7: Part作成 UI 導線
+
+### Issue 31.4: Part作成 UI 導線の具体化（GitHub #64）
+**Done条件**
+- 作成モードの導線（ツール配置・ショートカット・切り替え手順）が決まっている  
+- 作成時の操作フロー（開始/ドラッグ/確定/キャンセル）が明文化されている  
+- 右側アイコンの上限（5-6個）超過時のUI方針が決まっている  
 
 ---
 
