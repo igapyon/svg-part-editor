@@ -672,20 +672,46 @@
         setInputsEnabled(true);
       };
 
+      const referenceTags = new Set([
+        "defs",
+        "symbol",
+        "clippath",
+        "mask",
+        "pattern",
+        "marker",
+        "use",
+      ]);
+
+      const isInDefs = (node) => !!(node && node.closest && node.closest("defs"));
+
+      const isNonEditableElement = (node) => {
+        if (!(node instanceof Element)) {
+          return true;
+        }
+        if (node.classList.contains("svg-pan-zoom_viewport")) {
+          return true;
+        }
+        const tag = node.tagName ? node.tagName.toLowerCase() : "";
+        if (referenceTags.has(tag)) {
+          return true;
+        }
+        if (isInDefs(node)) {
+          return true;
+        }
+        return false;
+      };
+
       const getEditableParts = () => {
         if (!currentSvg) {
           return [];
         }
         const groups = Array.from(currentSvg.querySelectorAll("g")).filter(
-          (node) => !node.classList.contains("svg-pan-zoom_viewport")
+          (node) => !isNonEditableElement(node)
         );
         if (groups.length > 0) {
           return groups;
         }
-        return Array.from(currentSvg.children).filter((node) => {
-          const tag = node.tagName.toLowerCase();
-          return tag !== "defs" && tag !== "use";
-        });
+        return Array.from(currentSvg.children).filter((node) => !isNonEditableElement(node));
       };
 
       const getPartLabel = (part, index) => {
@@ -796,8 +822,12 @@
       const resolveSelectablePart = (target) => {
         const useElement = findUseElement(target);
         if (useElement) {
+          if (isInDefs(useElement)) {
+            status.textContent = "This <use> is inside <defs> and not editable.";
+            return null;
+          }
           const referenced = resolveUseReference(useElement);
-          if (referenced) {
+          if (referenced && !isNonEditableElement(referenced)) {
             status.textContent = "Selected referenced element for <use>.";
             return referenced;
           }
@@ -805,16 +835,19 @@
           return null;
         }
 
+        if (isNonEditableElement(target)) {
+          status.textContent = "This element is not editable.";
+          return null;
+        }
+
         let cursor = target;
         while (cursor && cursor !== currentSvg) {
-          if (cursor.tagName === "g") {
-            if (!cursor.classList.contains("svg-pan-zoom_viewport")) {
-              return cursor;
-            }
+          if (cursor.tagName === "g" && !isNonEditableElement(cursor)) {
+            return cursor;
           }
           cursor = cursor.parentElement;
         }
-        return target;
+        return isNonEditableElement(target) ? null : target;
       };
 
       const screenDeltaToSvgDelta = (dx, dy) => {
