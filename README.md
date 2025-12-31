@@ -2,6 +2,7 @@
 
 **svg-part-editor** is a lightweight, browser-only SVG WYSIWYG editor  
 that treats `<g>` elements as the minimum editable parts.
+本アプリは Static Web App（静的Webアプリ）として設計されています。単一HTMLで完結し、ビルドやサーバは不要です。
 
 SVGを **DOMとして扱い**、**`<g>`（group）をパーツの最小単位**として編集することに特化した、  
 ミニマルなWebブラウザ向けSVGエディタです。
