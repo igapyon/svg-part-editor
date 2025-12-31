@@ -1,4 +1,4 @@
-# DEVELOPER_NOTES.md
+﻿# DEVELOPER_NOTES.md
 
 本ドキュメントは開発の引き継ぎ事項をまとめたものです。
 
@@ -42,9 +42,9 @@
 - プロジェクト名は `svg-part-editor` です。
 - 旧名の `svg-group-editor` は使用しないでください。
 
-## �ҏW�ΏۊO�̐��� (�󂳂Ȃ����߂̍ŏ�����)
+## 編集対象外の境界 (壊さないための最小分解)
 
-- �ŏ��ҏW�P�ʂ́u�ł��߂� `<g>`�v�B `<g>` �������ꍇ�̂ݗv�f�P�́B
-- `<g>` �����̕����͍s��Ȃ��B
-- `<defs>` �z�� (symbol/clipPath/mask/pattern/marker �Ȃ�) �͕ҏW�ΏۊO�B
-- `<use>` ���͕̂ҏW�ΏۊO�B�K�v�Ȃ�Q�Ɛ��I��Ώۂɂ���B
+- 最小編集単位は「最も近い `<g>`」。 `<g>` が無い場合のみ要素単体。
+- `<g>` 内部の分解は行わない。
+- `<defs>` 配下全て (symbol/clipPath/mask/pattern/marker 等) は編集対象外。
+- `<use>` 自体は編集対象外。必要なら参照先を選択対象にする。
