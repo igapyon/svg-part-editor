@@ -41,3 +41,10 @@
 
 - ãƒ—ãƒ­ã‚¸ã‚§ã‚¯ãƒˆåã¯ `svg-part-editor` ã§ã™ã€‚
 - æ—§åã® `svg-group-editor` ã¯ä½¿ç”¨ã—ãªã„ã§ãã ã•ã„ã€‚
+
+## •ÒW‘ÎÛŠO‚Ì®— (‰ó‚³‚È‚¢‚½‚ß‚ÌÅ¬•ª‰ð)
+
+- Å¬•ÒW’PˆÊ‚ÍuÅ‚à‹ß‚¢ `<g>`vB `<g>` ‚ª–³‚¢ê‡‚Ì‚Ý—v‘f’P‘ÌB
+- `<g>` “à•”‚Ì•ª‰ð‚Ís‚í‚È‚¢B
+- `<defs>` ”z‰º (symbol/clipPath/mask/pattern/marker ‚È‚Ç) ‚Í•ÒW‘ÎÛŠOB
+- `<use>` Ž©‘Ì‚Í•ÒW‘ÎÛŠOB•K—v‚È‚çŽQÆæ‚ð‘I‘ð‘ÎÛ‚É‚·‚éB
