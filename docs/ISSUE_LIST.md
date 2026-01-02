@@ -4,7 +4,7 @@
 
 ### Issue 01: 静的HTML1枚で起動できるプロジェクトを作る
 **Done条件**
-- `src/svg-part-editor.html` を直接開いて動く  
+- `index.html` を直接開いて動く  
 - 画面が表示される（空でもOK）
 **ステータス**
 - 完了
