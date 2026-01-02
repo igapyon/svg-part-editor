@@ -51,16 +51,16 @@ SVGを **DOMとして扱い**、**`<g>`（group）をパーツの最小単位**�
 ### Run Locally
 
 1. リポジトリをクローン or ダウンロード
-2. `src/svg-part-editor.html` をブラウザで開く
+2. `index.html` をブラウザで開く
 
 ```sh
 # no build, no server required
-open src/svg-part-editor.html
+open index.html
 ```
 
 ### Release (Static Hosting)
 
-- `src/svg-part-editor.html` をそのまま静的ホストに配置する
+- `index.html` をそのまま静的ホストに配置する
 - CDN経由で依存を読み込むため、追加ビルドは不要
 
 ---

@@ -9,7 +9,7 @@ This file is a quick map for understanding what this app is and where to look ne
 - `docs/DEVELOPER_NOTES.md` : constraints and how to run/debug.
 
 ## How the App Works (5-10 minutes)
-- `src/svg-part-editor.html` : the entire app (UI + logic) lives here.
+- `index.html` : the entire app (UI + logic) lives here.
   - File load, select, drag, attribute edit, undo/redo, serialize/download.
   - `<g>` is the minimal editable unit.
 
@@ -23,3 +23,4 @@ This file is a quick map for understanding what this app is and where to look ne
 ## Notes
 - The app is a single HTML file; no build or server is required.
 - Keep the SVG structure intact; prefer editing referenced originals over `<use>` instances.
+- GitHub Pages is published from the `gh-pages` branch at `/(root)` with `index.html`.

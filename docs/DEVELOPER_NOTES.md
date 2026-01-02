@@ -11,7 +11,7 @@
 
 ## 作業ファイル
 
-- メインの作業ファイル: `src/svg-part-editor.html`
+- メインの作業ファイル: `index.html`
 - ドキュメント: `README.md`, `docs/ISSUE_LIST.md`
 
 ## 設計制約
@@ -33,9 +33,15 @@
 
 ## 開発フロー
 
-- `src/svg-part-editor.html` をブラウザで直接開いて動作確認します。
+- `index.html` をブラウザで直接開いて動作確認します。
 - 作業項目は `docs/ISSUE_LIST.md` で管理します。
 - `docs/ISSUE_LIST.md` の内容は GitHub Issue にも登録済みです。
+
+## GitHub Pages
+
+- 公開ブランチは `gh-pages` です。
+- 公開元は `/(root)` で、`index.html` をそのまま配信します。
+- `index.html` を正本として編集します。
 
 ## 命名
 
