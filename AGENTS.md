@@ -24,3 +24,4 @@ This file is a quick map for understanding what this app is and where to look ne
 - The app is a single HTML file; no build or server is required.
 - Keep the SVG structure intact; prefer editing referenced originals over `<use>` instances.
 - GitHub Pages is published from the `gh-pages` branch at `/(root)` with `index.html`.
+- Public URL: https://igapyon.github.io/svg-part-editor/
