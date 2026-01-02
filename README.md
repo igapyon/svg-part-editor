@@ -7,6 +7,8 @@ that treats `<g>` elements as the minimum editable parts.
 SVGを **DOMとして扱い**、**`<g>`（group）をパーツの最小単位**として編集することに特化した、  
 ミニマルなWebブラウザ向けSVGエディタです。
 
+公開URL: https://igapyon.github.io/svg-part-editor/
+
 ---
 
 ## Features

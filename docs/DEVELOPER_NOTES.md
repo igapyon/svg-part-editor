@@ -42,6 +42,7 @@
 - 公開ブランチは `gh-pages` です。
 - 公開元は `/(root)` で、`index.html` をそのまま配信します。
 - `index.html` を正本として編集します。
+- 公開URL: https://igapyon.github.io/svg-part-editor/
 
 ## 命名
 
